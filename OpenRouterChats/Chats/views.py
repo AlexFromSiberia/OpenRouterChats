@@ -1,17 +1,17 @@
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
 from functools import wraps
 
 from .models import Users
 from openrouter import OpenRouter
 from OpenRouterChats.settings import OPENROUTER_API_KEY
-import json
+#import json
 
 
 
 def _require_login(view_func):
     """Проверка авторизации"""
-
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         user_id = request.session.get('user_id')
@@ -72,16 +72,55 @@ def home_view(request):
     )
 
 
-def get_all_models():
+def _extract_model_ids(models_res):
+    """Извлечение идентификаторов моделей из ответа openrouter"""
+    if models_res is None:
+        return []
+
+    data = None
+    if isinstance(models_res, dict):
+        data = models_res.get('data') or models_res.get('models') or models_res.get('items')
+    else:
+        data = getattr(models_res, 'data', None) or getattr(models_res, 'models', None)
+
+    if data is None:
+        data = models_res
+
+    if isinstance(data, dict):
+        data = data.get('data') or data.get('models') or data.get('items')
+
+    if not isinstance(data, (list, tuple)):
+        return []
+
+    model_ids = []
+    for item in data:
+        model_id = None
+        if isinstance(item, str):
+            model_id = item
+        elif isinstance(item, dict):
+            model_id = item.get('id') or item.get('name')
+        else:
+            model_id = getattr(item, 'id', None) or getattr(item, 'name', None)
+
+        if isinstance(model_id, str) and model_id:
+            model_ids.append(model_id)
+
+    return model_ids
+
+
+@_require_login
+@require_http_methods(['GET'])
+def get_all_models(request):
     """Получение списка моделей open_router"""
-    with OpenRouter(api_key=OPENROUTER_API_KEY, ) as open_router:
+    try:
+        with OpenRouter(api_key=OPENROUTER_API_KEY) as open_router:
+            res = open_router.models.list()
 
-        res = open_router.models.list()
-
-        # Handle response
-        print(res)
-        
-    return res
+        model_ids = _extract_model_ids(res)
+        free_models = sorted({m for m in model_ids if isinstance(m, str) and m.endswith(':free')})
+        return JsonResponse({'models': free_models})
+    except Exception:
+        return JsonResponse({'models': []}, status=502)
 
 
 
@@ -98,7 +137,13 @@ def send_message(request):
     chat_history = request.session.get('chat_history') or []
     chat_history.append({'role': 'user', 'content': message})
 
-    model = "tngtech/deepseek-r1t2-chimera:free"
+    model = (request.POST.get('model') or request.session.get('selected_model') or "tngtech/deepseek-r1t2-chimera:free").strip()
+    if not model.endswith(':free'):
+        request.session['chat_history'] = chat_history
+        request.session['chat_error'] = 'Выберите бесплатную модель (:free).'
+        return redirect('home')
+
+    request.session['selected_model'] = model
     messages_for_model = chat_history[-20:]
 
     try:

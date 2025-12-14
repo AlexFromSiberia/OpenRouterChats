@@ -10,8 +10,11 @@
     <nav class="navbar navbar-expand-lg bg-body border-bottom">
       <div class="container">
         <a class="navbar-brand" href="/">OpenRouterChats</a>
-        <div class="ms-auto">
+        <div class="ms-auto d-flex align-items-center gap-2">
           {% if request.session.user_id %}
+            <select id="modelSelect" class="form-select form-select-sm" style="max-width: 280px;" aria-label="Выбор модели" data-selected-model="{{ request.session.selected_model|default:'' }}">
+              <option value="" selected disabled>Выбрать модель</option>
+            </select>
             <a class="btn btn-outline-light btn-sm" href="{% url 'logout' %}">Выйти</a>
           {% endif %}
         </div>

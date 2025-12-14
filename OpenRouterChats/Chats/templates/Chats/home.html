@@ -28,9 +28,67 @@
 
         <form method="post" action="{% url 'send_message' %}" class="d-flex gap-2">
           {% csrf_token %}
+          <input type="hidden" name="model" id="selectedModelInput" value="{{ request.session.selected_model|default:'' }}">
           <input type="text" class="form-control" name="message" placeholder="Ваше сообщение..." autocomplete="off" required>
           <button class="btn btn-primary" type="submit">Отправить</button>
         </form>
+
+        <script>
+          (function () {
+            const selectEl = document.getElementById('modelSelect');
+            const hiddenInputEl = document.getElementById('selectedModelInput');
+            if (!selectEl || !hiddenInputEl) return;
+
+            let modelsLoaded = false;
+
+            async function loadModelsIfNeeded() {
+              if (modelsLoaded) return;
+              modelsLoaded = true;
+
+              try {
+                const res = await fetch('{% url "get_all_models" %}', { credentials: 'same-origin' });
+                if (!res.ok) throw new Error('Bad response');
+                const payload = await res.json();
+                const models = Array.isArray(payload.models) ? payload.models : [];
+
+                const placeholder = selectEl.querySelector('option[value=""]');
+                selectEl.innerHTML = '';
+                if (placeholder) {
+                  selectEl.appendChild(placeholder);
+                } else {
+                  const opt = document.createElement('option');
+                  opt.value = '';
+                  opt.disabled = true;
+                  opt.selected = true;
+                  opt.textContent = 'Выбрать модель';
+                  selectEl.appendChild(opt);
+                }
+
+                for (const m of models) {
+                  const opt = document.createElement('option');
+                  opt.value = m;
+                  opt.textContent = m;
+                  selectEl.appendChild(opt);
+                }
+
+                const preselected = (selectEl.dataset.selectedModel || '').trim();
+                if (preselected) {
+                  selectEl.value = preselected;
+                  hiddenInputEl.value = preselected;
+                }
+              } catch (e) {
+                modelsLoaded = false;
+              }
+            }
+
+            selectEl.addEventListener('focus', loadModelsIfNeeded);
+            selectEl.addEventListener('mousedown', loadModelsIfNeeded);
+
+            selectEl.addEventListener('change', function () {
+              hiddenInputEl.value = selectEl.value;
+            });
+          })();
+        </script>
       </div>
     </div>
   </div>
