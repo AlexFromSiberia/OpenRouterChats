@@ -7,6 +7,31 @@
     <div class="card-body p-4">
       <h1 class="h4 mb-2">Главная</h1>
       <p class="mb-0">Привет, <strong>{{ login }}</strong>!</p>
+      <div id="chat" class="mt-4">
+        <div class="border rounded p-3 mb-3 bg-body" style="max-height: 50vh; overflow: auto;">
+          {% if chat_history %}
+            {% for msg in chat_history %}
+              <div class="d-flex mb-2 {% if msg.role == 'user' %}justify-content-end{% else %}justify-content-start{% endif %}">
+                <div class="px-3 py-2 rounded-3 {% if msg.role == 'user' %}bg-primary text-white{% else %}bg-secondary text-white{% endif %}" style="max-width: 80%; white-space: pre-wrap;">
+                  {{ msg.content }}
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-secondary small">Напиши сообщение, чтобы начать чат.</div>
+          {% endif %}
+        </div>
+
+        {% if error %}
+          <div class="alert alert-danger py-2">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'send_message' %}" class="d-flex gap-2">
+          {% csrf_token %}
+          <input type="text" class="form-control" name="message" placeholder="Ваше сообщение..." autocomplete="off" required>
+          <button class="btn btn-primary" type="submit">Отправить</button>
+        </form>
+      </div>
     </div>
   </div>
 {% endblock %}
