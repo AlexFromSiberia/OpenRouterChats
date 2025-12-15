@@ -1,3 +1,4 @@
+from time import sleep
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
@@ -30,13 +31,20 @@ def login_view(request):
     if request.session.get('user_id'):
         return redirect('home')
 
-    context = {}
+    context = {
+        'info': request.session.pop('auth_info', None),
+    }
     if request.method == 'POST':
         login = (request.POST.get('login') or '').strip()
         password = request.POST.get('password') or ''
 
         user = Users.objects.filter(login=login).first()
         if user and user.check_password(password):
+            if not user.is_active:
+                context['info'] = 'Логин и пароль верные, дождитесь когда администратор активирует вашу запись.'
+                context['login'] = login
+                return render(request, 'Chats/login.html', context)
+
             request.session['user_id'] = user.id
             request.session['user_login'] = user.login
             return redirect('home')
@@ -45,6 +53,46 @@ def login_view(request):
         context['login'] = login
 
     return render(request, 'Chats/login.html', context)
+
+
+@require_http_methods(['GET', 'POST'])
+def register_view(request):
+    """Регистрация нового пользователя (администратор активирует после проверки)
+    """
+    if request.session.get('user_id'):
+        return redirect('home')
+
+    context = {}
+    if request.method == 'POST':
+        login = (request.POST.get('login') or '').strip()
+        password = request.POST.get('password') or ''
+        password2 = request.POST.get('password2') or ''
+
+        context['login'] = login
+
+        if not login or not password:
+            context['error'] = 'Логин и пароль обязательны'
+            return render(request, 'Chats/register.html', context)
+
+        if password != password2:
+            context['error'] = 'Пароли не совпадают'
+            return render(request, 'Chats/register.html', context)
+
+        if Users.objects.filter(login=login).exists():
+            # Добавляем задержку для защиты от брутфорса
+            sleep(3)
+            context['error'] = 'Пользователь с таким логином уже существует'
+            return render(request, 'Chats/register.html', context)
+
+        user = Users(login=login)
+        user.set_password(password)
+        #user.is_active = False
+        user.save()
+
+        request.session['auth_info'] = 'Регистрация успешна. Дождитесь когда администратор активирует вашу запись.'
+        return redirect('login')
+
+    return render(request, 'Chats/register.html', context)
 
 
 def logout_view(request):
@@ -162,3 +210,4 @@ def send_message(request):
         request.session['chat_history'] = chat_history
         request.session['chat_error'] = 'Не удалось получить ответ от модели. Попробуйте ещё раз.'
         return redirect('home')
+
