@@ -7,7 +7,12 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
+    # clear chat
     path('clear/', views.clear_chat, name='clear_chat'),
+    # send new message to LLM
     path('send/', views.send_message, name='send_message'),
+    # get all(update list) openRouter models
     path('models/', views.get_all_models, name='get_all_models'),
+    # create a new teacher
+    path('teachers/create/', views.create_new_teacher, name='create_new_teacher'),
 ]

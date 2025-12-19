@@ -1,7 +1,7 @@
+// JS for Home page
 
 
-
-
+// gets all the available openRouter LLM models
 (function () {
   const selectEl = document.getElementById('modelSelect');
   const hiddenInputEl = document.getElementById('selectedModelInput');
@@ -10,6 +10,7 @@
   const modelsUrl = (selectEl.dataset.modelsUrl || '').trim();
   if (!modelsUrl) return;
 
+  // skip the function, if models already hav been loaded
   let modelsLoaded = false;
 
   async function loadModelsIfNeeded() {
@@ -55,3 +56,4 @@
     hiddenInputEl.value = selectEl.value;
   });
 })();
+

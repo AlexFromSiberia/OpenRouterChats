@@ -3,9 +3,10 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db import DatabaseError, IntegrityError
 from functools import wraps
 
-from .models import Users
+from .models import Teachers, Users
 from openrouter import OpenRouter
 from OpenRouterChats.settings import OPENROUTER_API_KEY
 #import json
@@ -102,7 +103,7 @@ def logout_view(request):
 
 @_require_login
 def home_view(request):
-    """Главная"""
+    """Главная страница"""
     user_login = getattr(request, 'user_login', None)
 
     chat_history = request.session.get('chat_history') or []
@@ -127,7 +128,9 @@ def clear_chat(request):
 
 
 def _extract_model_ids(models_res):
-    """Извлечение идентификаторов моделей из ответа openrouter"""
+    """Извлечение идентификаторов моделей из ответа openrouter
+        - вспомогательная для get_all_models
+    """
     if models_res is None:
         return []
 
@@ -216,4 +219,34 @@ def send_message(request):
         request.session['chat_history'] = chat_history
         messages.error(request, 'Не удалось получить ответ от модели. Попробуйте ещё раз.')
         return redirect('home')
+
+
+@_require_login
+@require_http_methods(['POST'])
+def create_new_teacher(request):
+    """Создать нового учителя"""
+    name = (request.POST.get('name') or '').strip()
+    prompt = (request.POST.get('prompt') or '').strip()
+
+    if not name:
+        messages.error(request, 'Имя учителя обязательно.')
+        return redirect('home')
+
+    if not prompt:
+        messages.error(request, 'Описание учителя обязательно.')
+        return redirect('home')
+
+    user = Users.objects.filter(id=request.session.get('user_id')).first()
+
+    try:
+        Teachers.objects.create(
+            name=name,
+            prompt=prompt,
+            user=user,
+        )
+        messages.success(request, 'Учитель добавлен.')
+    except (IntegrityError, DatabaseError):
+        messages.error(request, 'Не удалось создать учителя. Попробуйте ещё раз.')
+
+    return redirect('home')
 
