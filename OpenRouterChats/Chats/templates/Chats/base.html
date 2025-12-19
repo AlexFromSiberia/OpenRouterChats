@@ -12,6 +12,9 @@
         <a class="navbar-brand" href="/">OpenRouterChats</a>
         <div class="ms-auto d-flex align-items-center gap-2">
           {% if request.session.user_id %}
+            <select id="teacherSelect" class="form-select form-select-sm" style="max-width: 240px;" aria-label="Выбор учителя" data-selected-teacher="{{ request.session.selected_teacher|default:'' }}" data-teachers-url="{% url 'get_all_teachers' %}">
+              <option value="" selected disabled>Выбрать учителя</option>
+            </select>
             <select id="modelSelect" class="form-select form-select-sm" style="max-width: 280px;" aria-label="Выбор модели" data-selected-model="{{ request.session.selected_model|default:'' }}" data-models-url="{% url 'get_all_models' %}">
               <option value="" selected disabled>Выбрать модель</option>
             </select>

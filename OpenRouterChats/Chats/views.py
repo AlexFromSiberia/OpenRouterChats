@@ -3,15 +3,15 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.contrib import messages
-from django.db import DatabaseError, IntegrityError
+from django.db import DatabaseError, IntegrityError, models
 from functools import wraps
 
 from .models import Teachers, Users
 from openrouter import OpenRouter
 from OpenRouterChats.settings import OPENROUTER_API_KEY
-#import json
 
-
+# название LLM по умолчанию
+DEFAULT_LLM_MODEL = "tngtech/deepseek-r1t2-chimera:free"
 
 def _require_login(view_func):
     """Проверка авторизации"""
@@ -180,6 +180,19 @@ def get_all_models(request):
         return JsonResponse({'models': []}, status=502)
 
 
+@_require_login
+@require_http_methods(['GET'])
+def get_all_teachers(request):
+    """Получение списка учителей"""
+    #user_id = request.session.get('user_id')
+
+    qs = Teachers.objects.all()
+    # if user_id:
+    #     qs = qs.filter(models.Q(user__isnull=True) | models.Q(user_id=user_id))
+
+    teachers = list(qs.order_by('name', 'id').values('id', 'name'))
+    return JsonResponse({'teachers': teachers})
+
 
 @_require_login
 @require_http_methods(['POST'])
@@ -191,10 +204,24 @@ def send_message(request):
         messages.error(request, 'Сообщение не может быть пустым.')
         return redirect('home')
 
-    chat_history = request.session.get('chat_history') or []
-    chat_history.append({'role': 'user', 'content': message})
+    prompt=[{'role': 'user', 'content': ''}]
+    teacher_id = (request.POST.get('teacher') or request.session.get('selected_teacher') or '').strip()
+    if teacher_id:
+        request.session['selected_teacher'] = teacher_id
+        prompt = [{'role': 'user', 'content': Teachers.objects.get(id=teacher_id).prompt}]
 
-    model = (request.POST.get('model') or request.session.get('selected_model') or "tngtech/deepseek-r1t2-chimera:free").strip()
+
+    chat_history = prompt + (request.session.get('chat_history') or [])
+    
+    
+    
+    
+    chat_history.append({'role': 'user', 'content': message})
+    
+    print("DEBUG: chat_history", chat_history)
+    print("DEBUG: prompt:", prompt)
+
+    model = (request.POST.get('model') or request.session.get('selected_model') or DEFAULT_LLM_MODEL).strip()
     if not model.endswith(':free'):
         request.session['chat_history'] = chat_history
         messages.error(request, 'Выберите бесплатную модель (:free).')
@@ -239,11 +266,12 @@ def create_new_teacher(request):
     user = Users.objects.filter(id=request.session.get('user_id')).first()
 
     try:
-        Teachers.objects.create(
+        teacher = Teachers.objects.create(
             name=name,
             prompt=prompt,
             user=user,
         )
+        request.session['selected_teacher'] = str(teacher.id)
         messages.success(request, 'Учитель добавлен.')
     except (IntegrityError, DatabaseError):
         messages.error(request, 'Не удалось создать учителя. Попробуйте ещё раз.')

@@ -57,3 +57,72 @@
   });
 })();
 
+
+// gets all the available teachers
+(function () {
+  const selectEl = document.getElementById('teacherSelect');
+  const hiddenInputEl = document.getElementById('selectedTeacherInput');
+  if (!selectEl || !hiddenInputEl) return;
+
+  const teachersUrl = (selectEl.dataset.teachersUrl || '').trim();
+  if (!teachersUrl) return;
+
+  let teachersLoaded = false;
+
+  debugger
+
+  function setPlaceholderSelected(selectEl) {
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.textContent = 'Выбрать учителя';
+    selectEl.appendChild(placeholder);
+  }
+
+  async function loadTeachersIfNeeded() {
+    if (teachersLoaded) return;
+    teachersLoaded = true;
+
+    try {
+      const res = await fetch(teachersUrl, { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('Bad response');
+      const payload = await res.json();
+      const teachers = Array.isArray(payload.teachers) ? payload.teachers : [];
+
+      selectEl.innerHTML = '';
+      setPlaceholderSelected(selectEl);
+
+      for (const t of teachers) {
+        if (!t || typeof t.id === 'undefined') continue;
+        const opt = document.createElement('option');
+        opt.value = String(t.id);
+        opt.textContent = t.name || String(t.id);
+        selectEl.appendChild(opt);
+      }
+
+      const preselected = (selectEl.dataset.selectedTeacher || '').trim() || (hiddenInputEl.value || '').trim();
+      if (preselected) {
+        selectEl.value = preselected;
+        hiddenInputEl.value = preselected;
+      }
+    } catch (e) {
+      console.log(e)
+      teachersLoaded = false;
+    }
+  }
+
+  selectEl.addEventListener('focus', loadTeachersIfNeeded);
+  selectEl.addEventListener('mousedown', loadTeachersIfNeeded);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadTeachersIfNeeded);
+  } else {
+    loadTeachersIfNeeded();
+  }
+
+  selectEl.addEventListener('change', function () {
+    hiddenInputEl.value = selectEl.value;
+  });
+})();
+

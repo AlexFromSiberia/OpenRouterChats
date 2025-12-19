@@ -13,6 +13,8 @@ urlpatterns = [
     path('send/', views.send_message, name='send_message'),
     # get all(update list) openRouter models
     path('models/', views.get_all_models, name='get_all_models'),
+    # get all teachers
+    path('teachers/', views.get_all_teachers, name='get_all_teachers'),
     # create a new teacher
     path('teachers/create/', views.create_new_teacher, name='create_new_teacher'),
 ]
