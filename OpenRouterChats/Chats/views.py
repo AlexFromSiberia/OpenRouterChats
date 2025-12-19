@@ -2,6 +2,7 @@ from time import sleep
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
+from django.contrib import messages
 from functools import wraps
 
 from .models import Users
@@ -31,9 +32,7 @@ def login_view(request):
     if request.session.get('user_id'):
         return redirect('home')
 
-    context = {
-        'info': request.session.pop('auth_info', None),
-    }
+    context = {}
     if request.method == 'POST':
         login = (request.POST.get('login') or '').strip()
         password = request.POST.get('password') or ''
@@ -41,7 +40,7 @@ def login_view(request):
         user = Users.objects.filter(login=login).first()
         if user and user.check_password(password):
             if not user.is_active:
-                context['info'] = 'Логин и пароль верные, дождитесь когда администратор активирует вашу запись.'
+                messages.info(request, 'Логин и пароль верные, дождитесь когда администратор активирует вашу запись.')
                 context['login'] = login
                 return render(request, 'Chats/login.html', context)
 
@@ -49,7 +48,7 @@ def login_view(request):
             request.session['user_login'] = user.login
             return redirect('home')
 
-        context['error'] = 'Неверный логин или пароль'
+        messages.error(request, 'Неверный логин или пароль')
         context['login'] = login
 
     return render(request, 'Chats/login.html', context)
@@ -71,17 +70,17 @@ def register_view(request):
         context['login'] = login
 
         if not login or not password:
-            context['error'] = 'Логин и пароль обязательны'
+            messages.error(request, 'Логин и пароль обязательны')
             return render(request, 'Chats/register.html', context)
 
         if password != password2:
-            context['error'] = 'Пароли не совпадают'
+            messages.error(request, 'Пароли не совпадают')
             return render(request, 'Chats/register.html', context)
 
         if Users.objects.filter(login=login).exists():
             # Добавляем задержку для защиты от брутфорса
             sleep(3)
-            context['error'] = 'Пользователь с таким логином уже существует'
+            messages.error(request, 'Пользователь с таким логином уже существует')
             return render(request, 'Chats/register.html', context)
 
         user = Users(login=login)
@@ -89,7 +88,7 @@ def register_view(request):
         #user.is_active = False
         user.save()
 
-        request.session['auth_info'] = 'Регистрация успешна. Дождитесь когда администратор активирует вашу запись.'
+        messages.info(request, 'Регистрация успешна. Дождитесь когда администратор активирует вашу запись.')
         return redirect('login')
 
     return render(request, 'Chats/register.html', context)
@@ -107,7 +106,6 @@ def home_view(request):
     user_login = getattr(request, 'user_login', None)
 
     chat_history = request.session.get('chat_history') or []
-    error = request.session.pop('chat_error', None)
 
     return render(
         request,
@@ -115,7 +113,6 @@ def home_view(request):
         {
             'login': user_login,
             'chat_history': chat_history,
-            'error': error,
         },
     )
 
@@ -179,7 +176,7 @@ def send_message(request):
 
     message = (request.POST.get('message') or '').strip()
     if not message:
-        request.session['chat_error'] = 'Сообщение не может быть пустым.'
+        messages.error(request, 'Сообщение не может быть пустым.')
         return redirect('home')
 
     chat_history = request.session.get('chat_history') or []
@@ -188,7 +185,7 @@ def send_message(request):
     model = (request.POST.get('model') or request.session.get('selected_model') or "tngtech/deepseek-r1t2-chimera:free").strip()
     if not model.endswith(':free'):
         request.session['chat_history'] = chat_history
-        request.session['chat_error'] = 'Выберите бесплатную модель (:free).'
+        messages.error(request, 'Выберите бесплатную модель (:free).')
         return redirect('home')
 
     request.session['selected_model'] = model
@@ -208,6 +205,6 @@ def send_message(request):
         return redirect('home')
     except Exception:
         request.session['chat_history'] = chat_history
-        request.session['chat_error'] = 'Не удалось получить ответ от модели. Попробуйте ещё раз.'
+        messages.error(request, 'Не удалось получить ответ от модели. Попробуйте ещё раз.')
         return redirect('home')
 

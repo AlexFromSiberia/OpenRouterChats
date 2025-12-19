@@ -9,14 +9,6 @@
         <div class="card-body p-4">
           <h1 class="h4 mb-3">Вход</h1>
 
-          {% if info %}
-            <div class="alert alert-info" role="alert">{{ info }}</div>
-          {% endif %}
-
-          {% if error %}
-            <div class="alert alert-danger" role="alert">{{ error }}</div>
-          {% endif %}
-
           <form method="post" novalidate>
             {% csrf_token %}
             <div class="mb-3">

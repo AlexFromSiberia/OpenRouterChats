@@ -22,10 +22,6 @@
           {% endif %}
         </div>
 
-        {% if error %}
-          <div class="alert alert-danger py-2">{{ error }}</div>
-        {% endif %}
-
         <form method="post" action="{% url 'send_message' %}" class="d-flex gap-2">
           {% csrf_token %}
           <input type="hidden" name="model" id="selectedModelInput" value="{{ request.session.selected_model|default:'' }}">
