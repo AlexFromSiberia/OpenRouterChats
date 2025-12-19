@@ -117,6 +117,15 @@ def home_view(request):
     )
 
 
+@_require_login
+@require_http_methods(['POST'])
+def clear_chat(request):
+    """Очистка истории чата"""
+    request.session.pop('chat_history', None)
+    messages.success(request, 'Чат очищен.')
+    return redirect('home')
+
+
 def _extract_model_ids(models_res):
     """Извлечение идентификаторов моделей из ответа openrouter"""
     if models_res is None:
