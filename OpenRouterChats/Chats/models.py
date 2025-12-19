@@ -36,6 +36,7 @@ class Teachers(models.Model):
     """
     name = models.CharField(max_length=200)
     prompt = models.TextField()
+    user = models.ForeignKey('Users', on_delete=models.SET_NULL, null=True, blank=True)
     
     class Meta:
         db_table = 'Teachers'
