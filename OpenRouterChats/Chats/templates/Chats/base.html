@@ -15,7 +15,7 @@
             <select id="modelSelect" class="form-select form-select-sm" style="max-width: 280px;" aria-label="Выбор модели" data-selected-model="{{ request.session.selected_model|default:'' }}" data-models-url="{% url 'get_all_models' %}">
               <option value="" selected disabled>Выбрать модель</option>
             </select>
-            <a class="btn btn-outline-light btn-sm" href="{% url 'logout' %}">Выйти</a>
+            <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">Выйти</button>
           {% endif %}
         </div>
       </div>
@@ -31,6 +31,25 @@
         {% block content %}{% endblock %}
       </div>
     </main>
+
+    {% comment %} Модальное окно - подтвердить выход из акк {% endcomment %}
+    <div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="logoutConfirmModalLabel">Подтверждение</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Выйти из аккаунта?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+            <a class="btn btn-danger" href="{% url 'logout' %}">Подтвердить</a>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     {% block scripts %}{% endblock %}
