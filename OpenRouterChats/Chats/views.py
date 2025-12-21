@@ -205,22 +205,12 @@ def send_message(request):
         return redirect('home')
     
     chat_history = request.session.get('chat_history', [])
-    prompt=[{'role': 'user', 'content': ''}]
     teacher_id = (request.POST.get('teacher') or request.session.get('selected_teacher') or '').strip()
     
-    if teacher_id:
-        request.session['selected_teacher'] = teacher_id
-        prompt = [{'role': 'user', 'content': Teachers.objects.get(id=teacher_id).prompt}]
 
-    
-        if not chat_history or (chat_history and prompt[0] != chat_history[0]):
-            chat_history = prompt + request.session.get('chat_history', [])
     
     chat_history.append({'role': 'user', 'content': message})
     
-    print("DEBUG: chat_history", chat_history)
-    print("DEBUG: prompt:", prompt)
-
     model = (request.POST.get('model') or request.session.get('selected_model') or DEFAULT_LLM_MODEL).strip()
     if not model.endswith(':free'):
         request.session['chat_history'] = chat_history
@@ -229,6 +219,12 @@ def send_message(request):
 
     request.session['selected_model'] = model
     messages_for_model = chat_history[-20:]
+    if teacher_id:
+        request.session['selected_teacher'] = teacher_id
+        prompt = [{'role': 'user', 'content': Teachers.objects.get(id=teacher_id).prompt}]
+    
+        if not messages_for_model or (messages_for_model and prompt[0] != messages_for_model[0]):
+            messages_for_model = prompt + messages_for_model
 
     try:
         with OpenRouter(api_key=OPENROUTER_API_KEY) as client:
