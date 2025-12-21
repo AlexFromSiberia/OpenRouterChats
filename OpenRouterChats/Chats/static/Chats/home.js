@@ -128,7 +128,6 @@ document.getElementById('modelSelect').addEventListener('change', function() {
 });
 
 
-
 // gets all the available teachers
 (function () {
   const selectEl = document.getElementById('teacherSelect');
@@ -194,3 +193,17 @@ document.getElementById('modelSelect').addEventListener('change', function() {
     hiddenInputEl.value = selectEl.value;
   });
 })();
+
+
+// Auto-scroll chat to bottom on page load
+document.addEventListener('DOMContentLoaded', function() {
+
+  setTimeout(() => {
+    const chatContainer = document.querySelector('#chat .bg-body');
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }  
+  }, 500);
+
+});
+
