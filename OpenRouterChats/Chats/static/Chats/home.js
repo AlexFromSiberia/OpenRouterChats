@@ -1,6 +1,26 @@
 // JS for Home page
 
 
+// при клике "Отправить" проверяем, выбрана ли модель и учителя, если нет - селекторы выделим красным, данные не отправляем
+document.getElementById('sendMessageButton').addEventListener('click', function (event) {
+  const selectmodel = document.getElementById('modelSelect');
+  const selectteacher = document.getElementById('teacherSelect');
+
+  if (!selectmodel.value || !selectteacher.value) {
+    event.preventDefault();
+    selectmodel.classList.add('is-invalid');
+    selectteacher.classList.add('is-invalid');
+
+    setTimeout(() => {
+      selectmodel.classList.remove('is-invalid');
+      selectteacher.classList.remove('is-invalid');
+    }, 3000);
+
+    return;
+  }
+});
+
+
 // gets all the available openRouter LLM models
 (function () {
   const selectEl = document.getElementById('modelSelect');
@@ -68,8 +88,6 @@
   if (!teachersUrl) return;
 
   let teachersLoaded = false;
-
-  debugger
 
   function setPlaceholderSelected(selectEl) {
     const placeholder = document.createElement('option');

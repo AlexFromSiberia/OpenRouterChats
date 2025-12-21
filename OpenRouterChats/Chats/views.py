@@ -210,11 +210,9 @@ def send_message(request):
         request.session['selected_teacher'] = teacher_id
         prompt = [{'role': 'user', 'content': Teachers.objects.get(id=teacher_id).prompt}]
 
-
-    chat_history = prompt + (request.session.get('chat_history') or [])
-    
-    
-    
+    chat_history = request.session.get('chat_history', [])
+    if not chat_history or (chat_history and prompt[0] != chat_history[0]):
+        chat_history = prompt + request.session.get('chat_history', [])
     
     chat_history.append({'role': 'user', 'content': message})
     
