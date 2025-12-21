@@ -78,8 +78,6 @@ document.getElementById('sendMessageButton').addEventListener('click', function 
   // Load models from API if no cache
   async function loadModels() {
 
-    debugger
-
     try {
       const response = await fetch(modelsUrl, { credentials: 'same-origin' });
       if (!response.ok) throw new Error('API request failed');
@@ -123,8 +121,6 @@ document.getElementById('sendMessageButton').addEventListener('click', function 
 document.getElementById('modelSelect').addEventListener('change', function() {
   document.getElementById('selectedModelInput').value = this.value;
   localStorage.setItem('selectedModel', this.value);
-  debugger
-
 });
 
 
