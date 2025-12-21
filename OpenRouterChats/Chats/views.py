@@ -203,16 +203,18 @@ def send_message(request):
     if not message:
         messages.error(request, 'Сообщение не может быть пустым.')
         return redirect('home')
-
+    
+    chat_history = request.session.get('chat_history', [])
     prompt=[{'role': 'user', 'content': ''}]
     teacher_id = (request.POST.get('teacher') or request.session.get('selected_teacher') or '').strip()
+    
     if teacher_id:
         request.session['selected_teacher'] = teacher_id
         prompt = [{'role': 'user', 'content': Teachers.objects.get(id=teacher_id).prompt}]
 
-    chat_history = request.session.get('chat_history', [])
-    if not chat_history or (chat_history and prompt[0] != chat_history[0]):
-        chat_history = prompt + request.session.get('chat_history', [])
+    
+        if not chat_history or (chat_history and prompt[0] != chat_history[0]):
+            chat_history = prompt + request.session.get('chat_history', [])
     
     chat_history.append({'role': 'user', 'content': message})
     

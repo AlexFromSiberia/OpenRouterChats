@@ -34,7 +34,7 @@
           {% csrf_token %}
           <input type="hidden" name="model" id="selectedModelInput" value="{{ request.session.selected_model|default:'' }}">
           <input type="hidden" name="teacher" id="selectedTeacherInput" value="{{ request.session.selected_teacher|default:'' }}">
-          <input type="text" class="form-control" name="message" placeholder="Ваше сообщение..." autocomplete="off" required>
+          <input id="sendMessageInput" type="text" class="form-control" name="message" placeholder="Ваше сообщение..." autocomplete="off" required>
           <button id="sendMessageButton" class="btn btn-outline-primary" type="submit">Отправить</button>
         </form>
       </div>

@@ -1,7 +1,7 @@
 // JS for Home page
 
 
-// при клике "Отправить" проверяем, выбрана ли модель и учителя, если нет - селекторы выделим красным, данные не отправляем
+// При клике "Отправить" проверяем, выбрана ли модель и учителя, если нет - селекторы выделим красным, данные не отправляем
 document.getElementById('sendMessageButton').addEventListener('click', function (event) {
   const selectmodel = document.getElementById('modelSelect');
   const selectteacher = document.getElementById('teacherSelect');
@@ -18,64 +18,115 @@ document.getElementById('sendMessageButton').addEventListener('click', function 
 
     return;
   }
+
+  // Пустые сообщения не отправляем
+  if(!document.getElementById('sendMessageInput').value.trim()){
+    document.getElementById('sendMessageInput').classList.add('is-invalid');
+    setTimeout(() => {
+      document.getElementById('sendMessageInput').classList.remove('is-invalid');
+    }, 3000);
+    event.preventDefault();
+    return;
+  }
 });
 
 
 // gets all the available openRouter LLM models
 (function () {
+  // селектор моделей
   const selectEl = document.getElementById('modelSelect');
   const hiddenInputEl = document.getElementById('selectedModelInput');
-  if (!selectEl || !hiddenInputEl) return;
-
-  const modelsUrl = (selectEl.dataset.modelsUrl || '').trim();
-  if (!modelsUrl) return;
-
-  // skip the function, if models already hav been loaded
-  let modelsLoaded = false;
-
-  async function loadModelsIfNeeded() {
-    if (modelsLoaded) return;
-    modelsLoaded = true;
-
+  // cached models
+  const cachedModels = localStorage.getItem('cachedModels');
+  // Restore selection from localStorage or hidden input
+  const cachedSelection = localStorage.getItem('selectedModel');
+  
+  // If models are cached, populate select
+  if (cachedModels) {
     try {
-      const res = await fetch(modelsUrl, { credentials: 'same-origin' });
-      if (!res.ok) throw new Error('Bad response');
-      const payload = await res.json();
-      const models = Array.isArray(payload.models) ? payload.models : [];
-
+      const models = JSON.parse(cachedModels);
       selectEl.innerHTML = '';
-
+      
       const placeholder = document.createElement('option');
       placeholder.value = '';
       placeholder.disabled = true;
-      placeholder.selected = true;
+      placeholder.selected = !selectEl.value;
       placeholder.textContent = 'Выбрать модель';
       selectEl.appendChild(placeholder);
-
-      for (const m of models) {
-        const opt = document.createElement('option');
-        opt.value = m;
-        opt.textContent = m;
-        selectEl.appendChild(opt);
+      
+      for (const model of models) {
+        const option = document.createElement('option');
+        option.value = model;
+        option.textContent = model;
+        if (model === selectEl.value) {
+          option.selected = true;
+        }
+        selectEl.appendChild(option);
       }
 
-      const preselected = (selectEl.dataset.selectedModel || '').trim();
-      if (preselected) {
-        selectEl.value = preselected;
-        hiddenInputEl.value = preselected;
+      if (cachedSelection) {
+        hiddenInputEl.value = cachedSelection;
+        selectEl.value = cachedSelection;
       }
+
+      return;
     } catch (e) {
-      modelsLoaded = false;
+      console.error('Failed to parse cached models', e);
     }
   }
 
-  selectEl.addEventListener('focus', loadModelsIfNeeded);
-  selectEl.addEventListener('mousedown', loadModelsIfNeeded);
+  // Load models from API if no cache
+  async function loadModels() {
 
-  selectEl.addEventListener('change', function () {
-    hiddenInputEl.value = selectEl.value;
-  });
+    debugger
+
+    try {
+      const response = await fetch(modelsUrl, { credentials: 'same-origin' });
+      if (!response.ok) throw new Error('API request failed');
+      
+      const { models } = await response.json();
+      if (!Array.isArray(models)) throw new Error('Invalid models format');
+      
+      localStorage.setItem('cachedModels', JSON.stringify(models));
+      
+      selectEl.innerHTML = '';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.disabled = true;
+      placeholder.selected = !selectEl.value;
+      placeholder.textContent = 'Выбрать модель';
+      selectEl.appendChild(placeholder);
+      
+      for (const model of models) {
+        const option = document.createElement('option');
+        option.value = model;
+        option.textContent = model;
+        if (model === selectEl.value) {
+          option.selected = true;
+        }
+        selectEl.appendChild(option);
+      }
+    } catch (error) {
+      console.error('Failed to load models:', error);
+    }
+  }
+  
+  if (!cachedModels) {
+    loadModels();
+  }
+
+
 })();
+
+
+// Update storage on selection model change
+document.getElementById('modelSelect').addEventListener('change', function() {
+  document.getElementById('selectedModelInput').value = this.value;
+  localStorage.setItem('selectedModel', this.value);
+  debugger
+
+});
+
 
 
 // gets all the available teachers
@@ -143,4 +194,3 @@ document.getElementById('sendMessageButton').addEventListener('click', function 
     hiddenInputEl.value = selectEl.value;
   });
 })();
-
