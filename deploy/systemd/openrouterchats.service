@@ -1,0 +1,23 @@
+[Unit]
+Description=OpenRouterChats Gunicorn daemon
+After=network.target
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+RuntimeDirectory=gunicorn
+WorkingDirectory=/var/www/openrouterchats
+Environment="PATH=/var/www/openrouterchats/venv/bin"
+EnvironmentFile=/var/www/openrouterchats/.env
+ExecStart=/var/www/openrouterchats/venv/bin/gunicorn \
+          --config /var/www/openrouterchats/gunicorn_config.py \
+          OpenRouterChats.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
