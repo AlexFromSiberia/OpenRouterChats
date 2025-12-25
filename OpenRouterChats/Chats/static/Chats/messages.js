@@ -12,7 +12,7 @@ function showMessage(text, tags) {
   alertDiv.setAttribute('role', 'alert');
   alertDiv.innerHTML = `
     <span>${text}</span>
-    <button type="button" class="btn-close" aria-label="Close"></button>
+    <button type="button" class="btn-close" style="margin: 0.5rem; font-size: 1rem; width: 1rem; height: 1rem; padding: 0.1rem;" aria-label="Close"></button>
   `;
   
   container.appendChild(alertDiv);
@@ -26,7 +26,7 @@ function showMessage(text, tags) {
   setTimeout(() => {
     alertDiv.classList.remove('show');
     setTimeout(() => alertDiv.remove(), 150);
-  }, 6000);
+  }, 3000);
 }
 
 
