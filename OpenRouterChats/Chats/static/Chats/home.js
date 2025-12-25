@@ -1,17 +1,12 @@
 // JS for Home page
-console.log('home.js script loaded');
 
-
-debugger
 
 // add teacher - modal
 const addTeacherModal = new bootstrap.Modal(document.getElementById('addTeacherModal'));
 // Clear chat history - modal
 const clearChatModal = new bootstrap.Modal(document.getElementById('clearChatModal'));
-
-
+// Тут храним текущую переписку пользователя
 let CHAT_HISTORY = [];
-
 
 
 // load Teachers and Models
@@ -289,6 +284,7 @@ async function sendMessage() {
     }else{
       document.getElementById('sendMessageInput').value = ''
       CHAT_HISTORY = payload.chat_history;
+      fillChatHistory(CHAT_HISTORY)
     }
   } catch (e) {
     console.log(e)

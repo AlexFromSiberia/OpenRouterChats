@@ -11,8 +11,6 @@ from .models import Teachers, Users
 from openrouter import OpenRouter
 from OpenRouterChats.settings import OPENROUTER_API_KEY
 
-# название LLM по умолчанию
-DEFAULT_LLM_MODEL = "tngtech/deepseek-r1t2-chimera:free"
 
 def _require_login(view_func):
     """Проверка авторизации"""
