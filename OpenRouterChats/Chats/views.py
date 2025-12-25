@@ -236,8 +236,9 @@ def send_message(request):
 @require_http_methods(['POST'])
 def create_new_teacher(request):
     """Создать нового учителя"""
-    name = (request.POST.get('name') or '').strip()
-    prompt = (request.POST.get('prompt') or '').strip()
+    data = json.loads(request.body)
+    name = data.get('name', '').strip()
+    prompt = data.get('prompt', '').strip()
 
     if not name:
         messages.error(request, 'Имя учителя обязательно.')
@@ -250,12 +251,7 @@ def create_new_teacher(request):
     user = Users.objects.filter(id=request.session.get('user_id')).first()
     message = 'Учитель добавлен.'
     try:
-        teacher = Teachers.objects.create(
-            name=name,
-            prompt=prompt,
-            user=user,
-        )
-        request.session['selected_teacher'] = str(teacher.id)
+        Teachers.objects.create(name=name, prompt=prompt, user=user)
         messages.success(request, message)
     except (IntegrityError, DatabaseError):
         message = 'Не удалось создать учителя. Попробуйте ещё раз.'

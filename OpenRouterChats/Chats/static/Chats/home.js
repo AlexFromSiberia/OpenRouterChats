@@ -1,16 +1,29 @@
 // JS for Home page
 
 
+// 
+document.addEventListener('DOMContentLoaded', function() {
+  get_models();
+  get_teachers();
+});
+
+
+// -----------------------------------LLM Models----------------------------------------------
+
+
+// Update storage on selection model change
+document.getElementById('modelSelect').addEventListener('change', function() {
+  localStorage.setItem('selectedModel', this.value);
+});
 
 
 // gets all the available openRouter LLM models
-(function () {
+function get_models() {
   // селектор моделей
   const selectEl = document.getElementById('modelSelect');
-  const hiddenInputEl = document.getElementById('selectedModelInput');
   // cached models
   const cachedModels = localStorage.getItem('cachedModels');
-  // Restore selection from localStorage or hidden input
+  // Restore selection from Storage 
   const cachedSelection = localStorage.getItem('selectedModel');
   
   // If models are cached, populate select
@@ -36,26 +49,36 @@
         selectEl.appendChild(option);
       }
 
-      if (cachedSelection) {
-        hiddenInputEl.value = cachedSelection;
+      // set selected model from cache
+      if(cachedSelection){
         selectEl.value = cachedSelection;
       }
 
       return;
+
     } catch (e) {
       console.error('Failed to parse cached models', e);
     }
+  }else{
+    loadModels()
   }
 
   // Load models from API if no cache
   async function loadModels() {
-
     try {
-      const response = await fetch(modelsUrl, { credentials: 'same-origin' });
-      if (!response.ok) throw new Error('API request failed');
+      const response = await fetch('models/', { credentials: 'same-origin' });
+
+      debugger
       
+      if (!response.ok) {
+        console.error('Failed to fetch models:', response.status);
+        return;
+      }
       const { models } = await response.json();
-      if (!Array.isArray(models)) throw new Error('Invalid models format');
+      if (!Array.isArray(models)) {
+        console.error('Invalid models format');
+        return;
+      }
       
       localStorage.setItem('cachedModels', JSON.stringify(models));
       
@@ -80,96 +103,146 @@
       console.error('Failed to load models:', error);
     }
   }
-  
-  if (!cachedModels) {
-    loadModels();
-  }
+};
 
+// ----------------------------------- end LLM Models----------------------------------------------
 
-})();
+// -----------------------------------Teachers------------------------------------------------------
 
-
-
-
-
-// gets all the available teachers
-(function () {
-  const selectEl = document.getElementById('teacherSelect');
-  const hiddenInputEl = document.getElementById('selectedTeacherInput');
-  if (!selectEl || !hiddenInputEl) return;
-
-  const teachersUrl = (selectEl.dataset.teachersUrl || '').trim();
-  if (!teachersUrl) return;
-
-  let teachersLoaded = false;
-
-  function setPlaceholderSelected(selectEl) {
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.disabled = true;
-    placeholder.selected = true;
-    placeholder.textContent = 'Выбрать учителя';
-    selectEl.appendChild(placeholder);
-  }
-
-  async function loadTeachersIfNeeded() {
-    if (teachersLoaded) return;
-    teachersLoaded = true;
-
-    try {
-      const res = await fetch(teachersUrl, { credentials: 'same-origin' });
-      if (!res.ok) throw new Error('Bad response');
-      const payload = await res.json();
-      const teachers = Array.isArray(payload.teachers) ? payload.teachers : [];
-
-      selectEl.innerHTML = '';
-      setPlaceholderSelected(selectEl);
-
-      for (const t of teachers) {
-        if (!t || typeof t.id === 'undefined') continue;
-        const opt = document.createElement('option');
-        opt.value = String(t.id);
-        opt.textContent = t.name || String(t.id);
-        selectEl.appendChild(opt);
-      }
-
-      const preselected = (selectEl.dataset.selectedTeacher || '').trim() || (hiddenInputEl.value || '').trim();
-      if (preselected) {
-        selectEl.value = preselected;
-        hiddenInputEl.value = preselected;
-      }
-    } catch (e) {
-      console.log(e)
-      teachersLoaded = false;
-    }
-  }
-
-  selectEl.addEventListener('focus', loadTeachersIfNeeded);
-  selectEl.addEventListener('mousedown', loadTeachersIfNeeded);
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadTeachersIfNeeded);
-  } else {
-    loadTeachersIfNeeded();
-  }
-
-  selectEl.addEventListener('change', function () {
-    hiddenInputEl.value = selectEl.value;
-  });
-})();
-
-
-// 
-document.addEventListener('DOMContentLoaded', function() {
-
-
-
-
-
+// Update storage on selection teacher change
+document.getElementById('teacherSelect').addEventListener('change', function() {
+  localStorage.setItem('selectedTeacher', this.value);
 });
 
 
-// --------------------- NEW CODE ---------------------
+// gets all available teachers
+function get_teachers() {
+  // cached teachers
+  const cachedTeachers = localStorage.getItem('cachedTeachers');
+  // If teachers are cached, populate select
+  if (cachedTeachers) {
+    fillTeachersSelector(cachedTeachers)
+  }else{
+    loadTeachers()
+  }
+};
+
+
+// Load teachers from API if no cache
+async function loadTeachers() {
+  try {
+    const response = await fetch('teachers/', { credentials: 'same-origin' });
+    if (!response.ok) {
+      console.error('Failed to fetch teachers:', response.status);
+      return;
+    }
+
+    const { teachers: teacherList } = await response.json();
+    if (!Array.isArray(teacherList)) {
+      console.error('Invalid teachers format');
+      return;
+    }
+    
+    localStorage.setItem('cachedTeachers', JSON.stringify(teacherList));
+    fillTeachersSelector(JSON.stringify(teacherList))
+  } catch (error) {
+    console.error('Failed to load teachers:', error);
+  }
+}
+
+
+// Fill teacher selector
+function fillTeachersSelector(cachedTeachers) {
+  // селектор учителей
+  const selectEl = document.getElementById('teacherSelect');
+  // Restore selection from Storage 
+  const cachedSelection = localStorage.getItem('selectedTeacher');
+
+  try {
+    const teachers = JSON.parse(cachedTeachers);
+    selectEl.innerHTML = '';
+    
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = !selectEl.value;
+    placeholder.textContent = 'Выбрать учителя';
+    selectEl.appendChild(placeholder);
+
+    for (const t of teachers) {
+      if (!t || typeof t.id === 'undefined') continue;
+      const opt = document.createElement('option');
+      opt.value = String(t.id);
+      opt.textContent = t.name || String(t.id);
+      selectEl.appendChild(opt);
+    }
+
+    // set selected teacher from cache
+    if (cachedSelection){
+      selectEl.value = cachedSelection;
+    }
+    return;
+
+  } catch (e) {
+    console.error('Failed to parse cached teachers', e);
+  }  
+}
+
+
+// add teacher - modal
+const addTeacherModal = new bootstrap.Modal(document.getElementById('addTeacherModal'));
+
+// open add teacher modal button
+document.getElementById('addNewTeacher').addEventListener('click', function() {
+  addTeacherModal.show();
+});
+
+
+// Teacher creation
+document.getElementById('addTeacherButton').addEventListener('click', function (event) {
+  async function addTeacher() {
+    document.getElementById('addTeacherButton').disabled = true;
+    let data = {
+      name: document.getElementById('teacherName').value,
+      prompt: document.getElementById('teacherPrompt').value,
+    }
+
+    try {
+      const res = await fetch('teachers/create/', 
+        { credentials: 'same-origin', 
+          method: 'POST', 
+          body: JSON.stringify(data), 
+          headers: { 'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value } 
+        }
+      );
+
+      if (res.ok) {
+        loadTeachers()
+      }else {
+        console.error('Failed to create new teacher');
+      }
+      
+    } catch (e) {
+      console.log(e)
+    }
+    addTeacherModal.hide();
+
+    fetchMessagesFromServer();
+    document.getElementById('addTeacherButton').disabled = false;
+  }
+
+  addTeacher()
+
+})
+
+
+
+
+
+// -----------------------------------end Teachers------------------------------------------------------
+
+
+
 
 
 let CHAT_HISTORY = [];
@@ -187,8 +260,8 @@ document.getElementById('sendMessageButton').addEventListener('click', function 
 async function sendMessage() {
   document.getElementById('sendMessageButton').disabled = true;
   let data = {
-    model: document.getElementById('selectedModelInput').value,
-    teacher: document.getElementById('selectedTeacherInput').value,
+    model: document.getElementById('modelSelect').value,     // localStorage.getItem('selectedModel');
+    teacher: document.getElementById('teacherSelect').value, // localStorage.getItem('selectedTeacher');
     message: document.getElementById('sendMessageInput').value,
     chat_history: CHAT_HISTORY,
   }
@@ -266,12 +339,6 @@ function checkBeforeSend(event){
   }
 }
 
-
-// Update storage on selection model change
-document.getElementById('modelSelect').addEventListener('change', function() {
-  document.getElementById('selectedModelInput').value = this.value;
-  localStorage.setItem('selectedModel', this.value);
-});
 
 
 
@@ -372,56 +439,3 @@ if (document.readyState === 'loading') {
 
 
 
-
-// Teacher creation
-document.getElementById('addTeacherButton').addEventListener('click', function (event) {
-  async function addTeacher() {
-    document.getElementById('addTeacherButton').disabled = true;
-    let data = {
-      name: document.getElementById('teacherName').value,
-      prompt: document.getElementById('teacherPrompt').value,
-    }
-
-    try {
-      const res = await fetch('teachers/create/', 
-        { credentials: 'same-origin', 
-          method: 'POST', 
-          body: JSON.stringify(data), 
-          headers: { 'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value } 
-        }
-      );
-
-      const payload = await res.json();
-
-      if (!res.ok) {
-        console.log(payload.error)
-      }else{
-        console.log(payload)
-        fillTeacersSelector(payload.teachers)
-      }
-      
-    } catch (e) {
-      console.log(e)
-    }
-
-    fetchMessagesFromServer();
-    document.getElementById('addTeacherButton').disabled = false;
-  }
-
-  addTeacher()
-
-})
-
-
-
-function fillTeacersSelector(teachers){
-  const selectEl = document.getElementById('teacherSelect');
-
-  for (const teacher of teachers){
-    const option = document.createElement('option');
-    option.value = teacher.id;
-    option.textContent = teacher.name;
-    selectEl.appendChild(option);
-  }
-
-}

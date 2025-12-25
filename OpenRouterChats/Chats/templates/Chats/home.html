@@ -3,13 +3,14 @@
 {% block title %}Главная{% endblock %}
 
 {% block content %}
+  {% csrf_token %}
   <div class="card shadow-sm">
     <div class="card-body p-4">
       <div class="d-flex align-items-center justify-content-between gap-3">
         <p class="mb-0">Привет, <strong>{{ login }}</strong>!</p>
         <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-outline-success btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#addTeacherModal">Добавить учителя</button>
-          <button id="clearChatButton" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#clearChatModal">Очистить чат</button>
+          <button id='addNewTeacher' class="btn btn-outline-success btn-sm">Добавить учителя</button>
+          <button id="clearChatButton" class="btn btn-outline-danger btn-sm">Очистить чат</button>
         </div>
       </div>
       <div id="chat_scroller" class="mt-4">
@@ -17,8 +18,6 @@
         </div>
 
         <div class="d-flex gap-2">
-          <input type="hidden" name="model" id="selectedModelInput" value="{{ request.session.selected_model|default:'' }}">
-          <input type="hidden" name="teacher" id="selectedTeacherInput" value="{{ request.session.selected_teacher|default:'' }}">
           <input id="sendMessageInput" type="text" class="form-control" name="message" placeholder="Ваше сообщение..." autocomplete="off" required>
           <button id="sendMessageButton" class="btn btn-outline-primary" type="submit">Отправить</button>
         </div>
