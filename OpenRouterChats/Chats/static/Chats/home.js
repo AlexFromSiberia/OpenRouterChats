@@ -1,4 +1,8 @@
 // JS for Home page
+console.log('home.js script loaded');
+
+
+debugger
 
 // add teacher - modal
 const addTeacherModal = new bootstrap.Modal(document.getElementById('addTeacherModal'));
@@ -253,7 +257,15 @@ document.getElementById('sendMessageButton').addEventListener('click', function 
 
 // 'Send message' button - sends message to server
 async function sendMessage() {
-  document.getElementById('sendMessageButton').disabled = true;
+  const sendButton = document.getElementById('sendMessageButton');
+  const sendButtonText = document.getElementById('sendButtonText');
+  const sendButtonLoader = document.getElementById('sendButtonLoader');
+  
+  // Show loader and disable button
+  sendButton.disabled = true;
+  sendButtonText.textContent = 'Отправка...';
+  sendButtonLoader.classList.remove('d-none');
+  
   let data = {
     model: document.getElementById('modelSelect').value,     // localStorage.getItem('selectedModel');
     teacher: document.getElementById('teacherSelect').value, // localStorage.getItem('selectedTeacher');
@@ -282,7 +294,11 @@ async function sendMessage() {
     console.log(e)
   }
   fetchMessagesFromServer();
-  document.getElementById('sendMessageButton').disabled = false;
+  
+  // Hide loader and restore button
+  sendButton.disabled = false;
+  sendButtonText.textContent = 'Отправить';
+  sendButtonLoader.classList.add('d-none');
 }
 
 
