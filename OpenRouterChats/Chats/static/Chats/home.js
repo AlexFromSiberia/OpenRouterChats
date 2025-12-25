@@ -1,7 +1,16 @@
 // JS for Home page
 
+// add teacher - modal
+const addTeacherModal = new bootstrap.Modal(document.getElementById('addTeacherModal'));
+// Clear chat history - modal
+const clearChatModal = new bootstrap.Modal(document.getElementById('clearChatModal'));
 
-// 
+
+let CHAT_HISTORY = [];
+
+
+
+// load Teachers and Models
 document.addEventListener('DOMContentLoaded', function() {
   get_models();
   get_teachers();
@@ -10,8 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // -----------------------------------LLM Models----------------------------------------------
 
-
-// Update storage on selection model change
+// Save selected model to storage on change
 document.getElementById('modelSelect').addEventListener('change', function() {
   localStorage.setItem('selectedModel', this.value);
 });
@@ -63,13 +71,12 @@ function get_models() {
     loadModels()
   }
 
+
   // Load models from API if no cache
   async function loadModels() {
     try {
       const response = await fetch('models/', { credentials: 'same-origin' });
 
-      debugger
-      
       if (!response.ok) {
         console.error('Failed to fetch models:', response.status);
         return;
@@ -105,11 +112,14 @@ function get_models() {
   }
 };
 
+
+
 // ----------------------------------- end LLM Models----------------------------------------------
+
 
 // -----------------------------------Teachers------------------------------------------------------
 
-// Update storage on selection teacher change
+// Save selected teacher to storage on change
 document.getElementById('teacherSelect').addEventListener('change', function() {
   localStorage.setItem('selectedTeacher', this.value);
 });
@@ -189,9 +199,6 @@ function fillTeachersSelector(cachedTeachers) {
 }
 
 
-// add teacher - modal
-const addTeacherModal = new bootstrap.Modal(document.getElementById('addTeacherModal'));
-
 // open add teacher modal button
 document.getElementById('addNewTeacher').addEventListener('click', function() {
   addTeacherModal.show();
@@ -226,26 +233,14 @@ document.getElementById('addTeacherButton').addEventListener('click', function (
       console.log(e)
     }
     addTeacherModal.hide();
-
     fetchMessagesFromServer();
     document.getElementById('addTeacherButton').disabled = false;
   }
 
   addTeacher()
-
 })
 
-
-
-
-
 // -----------------------------------end Teachers------------------------------------------------------
-
-
-
-
-
-let CHAT_HISTORY = [];
 
 
 // 'Send message' button
@@ -279,34 +274,15 @@ async function sendMessage() {
 
     if (!res.ok) {
       console.log(payload.error)
-      fetchMessagesFromServer();
     }else{
       document.getElementById('sendMessageInput').value = ''
       CHAT_HISTORY = payload.chat_history;
-      fillChatHistory(payload.chat_history)
-      fetchMessagesFromServer();
     }
   } catch (e) {
     console.log(e)
   }
+  fetchMessagesFromServer();
   document.getElementById('sendMessageButton').disabled = false;
-}
-
-
-// real-time Django messages 
-function fetchMessagesFromServer() {
-  fetch('messages/', { credentials: 'same-origin' })
-    .then(res => res.json())
-    .then(data => {
-      if (data.messages && data.messages.length > 0) {
-        data.messages.forEach(msg => {
-          if (typeof showMessage === 'function') {
-            showMessage(msg.text, msg.tags);
-          }
-        });
-      }
-    })
-    .catch(err => console.error('Failed to fetch messages:', err));
 }
 
 
@@ -340,8 +316,6 @@ function checkBeforeSend(event){
 }
 
 
-
-
 // fill chat history
 function fillChatHistory(payload){
   const chatEl = document.getElementById('chat');
@@ -372,70 +346,17 @@ function fillChatHistory(payload){
 }
 
 
-
-
-// Clear chat history - modal
-const clearChatModal = new bootstrap.Modal(document.getElementById('clearChatModal'));
-
-// clearChatButton
+// clear Chat
 document.getElementById('clearChatButton').addEventListener('click', function() {
   clearChatModal.show();
 });
 
-// Handle confirmation
+// clear Chat - Handle confirmation
 document.getElementById('confirmClearChat').addEventListener('click', function() {
   CHAT_HISTORY = [];
   fillChatHistory(CHAT_HISTORY);
   clearChatModal.hide();
 });
-
-
-
-//------------------------real-time Django messages-----------------------------
-function showMessage(text, tags) {
-  const container = document.getElementById('messages-container');
-  const alertDiv = document.createElement('div');
-  const alertClass = tags === 'error' ? 'alert-danger' : tags ? `alert-${tags}` : 'alert-secondary';
-  
-  alertDiv.className = `alert ${alertClass} py-2 alert-dismissible fade show d-flex justify-content-between align-items-center`;
-  alertDiv.setAttribute('role', 'alert');
-  alertDiv.innerHTML = `
-    <span>${text}</span>
-    <button type="button" class="btn-close" aria-label="Close"></button>
-  `;
-  
-  container.appendChild(alertDiv);
-  
-  const closeBtn = alertDiv.querySelector('.btn-close');
-  closeBtn.addEventListener('click', function() {
-    alertDiv.classList.remove('show');
-    setTimeout(() => alertDiv.remove(), 150);
-  });
-  
-  setTimeout(() => {
-    alertDiv.classList.remove('show');
-    setTimeout(() => alertDiv.remove(), 150);
-  }, 6000);
-}
-
-function fetchMessages() {
-  fetch('messages/', { credentials: 'same-origin' })
-    .then(res => res.json())
-    .then(data => {
-      if (data.messages && data.messages.length > 0) {
-        data.messages.forEach(msg => showMessage(msg.text, msg.tags));
-      }
-    })
-    .catch(err => console.error('Failed to fetch messages:', err));
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', fetchMessages);
-} else {
-  fetchMessages();
-}
-
-//------------------------END real-time Django messages-----------------------------
 
 
 
