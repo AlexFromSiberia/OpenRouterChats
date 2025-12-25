@@ -26,18 +26,14 @@
 
     <main class="py-5">
       <div class="container">
-        {% if messages %}
-          {% for message in messages %}
-            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags %}alert-{{ message.tags }}{% else %}alert-secondary{% endif %} py-2" role="alert">{{ message }}</div>
-          {% endfor %}
-        {% endif %}
+        <div id="messages-container"></div>
         {% block content %}{% endblock %}
       </div>
     </main>
 
     {% comment %} Модальное окно - подтвердить выход из акк {% endcomment %}
     <div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="logoutConfirmModalLabel">Подтверждение</h5>

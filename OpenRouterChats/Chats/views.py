@@ -1,4 +1,5 @@
 from time import sleep
+import json
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
@@ -118,15 +119,6 @@ def home_view(request):
     )
 
 
-@_require_login
-@require_http_methods(['POST'])
-def clear_chat(request):
-    """Очистка истории чата"""
-    request.session.pop('chat_history', None)
-    messages.success(request, 'Чат очищен.')
-    return redirect('home')
-
-
 def _extract_model_ids(models_res):
     """Извлечение идентификаторов моделей из ответа openrouter
         - вспомогательная для get_all_models
@@ -198,33 +190,32 @@ def get_all_teachers(request):
 @require_http_methods(['POST'])
 def send_message(request):
     """Отправка сообщения"""
-
-    message = (request.POST.get('message') or '').strip()
+    data = json.loads(request.body)
+    message = data.get('message', '').strip()
+    chat_history = data.get('chat_history', [])
+    teacher_id = data.get('teacher', '').strip()
+    chat_history.append({'role': 'user', 'content': message})
+    model = data.get('model').strip()
+    messages_for_model = chat_history[-20:]
+    
     if not message:
         messages.error(request, 'Сообщение не может быть пустым.')
-        return redirect('home')
-    
-    chat_history = request.session.get('chat_history', [])
-    teacher_id = (request.POST.get('teacher') or request.session.get('selected_teacher') or '').strip()
-    
-
-    
-    chat_history.append({'role': 'user', 'content': message})
-    
-    model = (request.POST.get('model') or request.session.get('selected_model') or DEFAULT_LLM_MODEL).strip()
+        return JsonResponse({'error': 'Сообщение не может быть пустым.'}, status=400)
+    if not teacher_id:
+        messages.error(request, 'Выберите учителя.')
+        return JsonResponse({'error': 'Выберите учителя.'}, status=400)
+    if not model:
+        messages.error(request, 'Выберите модель.')
+        return JsonResponse({'error': 'Выберите модель.'}, status=400)
     if not model.endswith(':free'):
-        request.session['chat_history'] = chat_history
         messages.error(request, 'Выберите бесплатную модель (:free).')
-        return redirect('home')
+        return JsonResponse({'error': 'Выберите бесплатную модель (:free).'}, status=400)
 
-    request.session['selected_model'] = model
-    messages_for_model = chat_history[-20:]
-    if teacher_id:
-        request.session['selected_teacher'] = teacher_id
-        prompt = [{'role': 'user', 'content': Teachers.objects.get(id=teacher_id).prompt}]
-    
-        if not messages_for_model or (messages_for_model and prompt[0] != messages_for_model[0]):
-            messages_for_model = prompt + messages_for_model
+
+    prompt = [{'role': 'user', 'content': Teachers.objects.get(id=teacher_id).prompt}]
+
+    if not messages_for_model or (messages_for_model and prompt[0] != messages_for_model[0]):
+        messages_for_model = prompt + messages_for_model
 
     try:
         with OpenRouter(api_key=OPENROUTER_API_KEY) as client:
@@ -232,16 +223,13 @@ def send_message(request):
                 model=model,
                 messages=messages_for_model,
             )
-
             answer = response.choices[0].message.content
 
         chat_history.append({'role': 'assistant', 'content': answer})
-        request.session['chat_history'] = chat_history
-        return redirect('home')
+        return JsonResponse({'chat_history': chat_history})
     except Exception:
-        request.session['chat_history'] = chat_history
         messages.error(request, 'Не удалось получить ответ от модели. Попробуйте ещё раз.')
-        return redirect('home')
+        return JsonResponse({'error': 'Не удалось получить ответ от модели. Попробуйте ещё раз.'}, status=500)
 
 
 @_require_login
@@ -253,14 +241,14 @@ def create_new_teacher(request):
 
     if not name:
         messages.error(request, 'Имя учителя обязательно.')
-        return redirect('home')
+        return JsonResponse({'error': 'Имя учителя обязательно.'}, status=400)
 
     if not prompt:
         messages.error(request, 'Описание учителя обязательно.')
-        return redirect('home')
+        return JsonResponse({'error': 'Описание учителя обязательно.'}, status=400)
 
     user = Users.objects.filter(id=request.session.get('user_id')).first()
-
+    message = 'Учитель добавлен.'
     try:
         teacher = Teachers.objects.create(
             name=name,
@@ -268,9 +256,26 @@ def create_new_teacher(request):
             user=user,
         )
         request.session['selected_teacher'] = str(teacher.id)
-        messages.success(request, 'Учитель добавлен.')
+        messages.success(request, message)
     except (IntegrityError, DatabaseError):
-        messages.error(request, 'Не удалось создать учителя. Попробуйте ещё раз.')
+        message = 'Не удалось создать учителя. Попробуйте ещё раз.'
+        messages.error(request, message)
 
-    return redirect('home')
+    return JsonResponse({'success': message}, status=200)
+
+
+@require_http_methods(['GET'])
+def get_messages_view(request):
+    """Получение сообщений Django messages через AJAX"""
+    from django.contrib.messages import get_messages
+    
+    message_list = []
+    storage = get_messages(request)
+    for message in storage:
+        message_list.append({
+            'text': str(message),
+            'tags': message.tags
+        })
+    
+    return JsonResponse({'messages': message_list})
 
