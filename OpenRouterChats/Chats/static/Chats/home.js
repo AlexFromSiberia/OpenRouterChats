@@ -24,6 +24,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Refresh selectors button click handler
 document.getElementById('refreshSelectors').addEventListener('click', function() {
+  // Hide tooltip immediately
+  const tooltip = bootstrap.Tooltip.getInstance(this);
+  if (tooltip) {
+    tooltip.hide();
+  }
+  
   loadTeachers();
   loadModels();
 });
