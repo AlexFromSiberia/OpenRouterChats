@@ -9,9 +9,9 @@ const clearChatModal = new bootstrap.Modal(document.getElementById('clearChatMod
 
 
 // load Teachers and Models
-document.addEventListener('DOMContentLoaded', function() {
-  get_models();
-  get_teachers();
+document.addEventListener('DOMContentLoaded', async function() {
+  await get_models();
+  await get_teachers();
   fillChatHistory(getChatHistory());
   
   // tooltip for 'refresh' button
@@ -23,15 +23,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // Refresh selectors button click handler
-document.getElementById('refreshSelectors').addEventListener('click', function() {
+document.getElementById('refreshSelectors').addEventListener('click', async function() {
   // Hide tooltip immediately
   const tooltip = bootstrap.Tooltip.getInstance(this);
   if (tooltip) {
     tooltip.hide();
   }
   
-  loadTeachers();
-  loadModels();
+  await loadTeachers();
+  await loadModels();
+
+  // show success message
+  const toast = new bootstrap.Toast(document.getElementById('refreshToast'));
+  toast.show();
+  setTimeout(() => {
+    toast.hide();
+  }, 2000);
 });
 
 
@@ -62,6 +69,7 @@ async function loadModels() {
     
     localStorage.setItem('cachedModels', JSON.stringify(models));
     fillModelsSelector(JSON.stringify(models));
+    console.log('Models loaded and cached', models.length, 'models');
 
   } catch (error) {
     console.error('Failed to load models:', error);
@@ -69,14 +77,14 @@ async function loadModels() {
 }
 
 // gets all the available openRouter LLM models
-function get_models() {
+async function get_models() {
   // cached models
   const cachedModels = localStorage.getItem('cachedModels');
   // If models are cached, populate select
   if (cachedModels) {
     fillModelsSelector(cachedModels)
   }else{
-    loadModels()
+    await loadModels()
   }
 };
 
@@ -131,14 +139,14 @@ document.getElementById('teacherSelect').addEventListener('change', function() {
 
 
 // gets all available teachers
-function get_teachers() {
+async function get_teachers() {
   // cached teachers
   const cachedTeachers = localStorage.getItem('cachedTeachers');
   // If teachers are cached, populate select
   if (cachedTeachers) {
     fillTeachersSelector(cachedTeachers)
   }else{
-    loadTeachers()
+    await loadTeachers()
   }
 };
 
@@ -160,6 +168,7 @@ async function loadTeachers() {
     
     localStorage.setItem('cachedTeachers', JSON.stringify(teacherList));
     fillTeachersSelector(JSON.stringify(teacherList))
+    console.log('Teachers loaded and cached', teacherList.length, 'teachers');
   } catch (error) {
     console.error('Failed to load teachers:', error);
   }
