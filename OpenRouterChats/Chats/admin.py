@@ -22,6 +22,6 @@ class UsersAdmin(admin.ModelAdmin):
 @admin.register(Teachers)
 class TeachersAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'prompt',)
-    search_fields = ('name',)
-
-
+    list_editable = ('name', 'prompt',)
+    search_fields = ('name', 'prompt',)
+    ordering = ('name',)
