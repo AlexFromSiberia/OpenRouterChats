@@ -13,6 +13,19 @@ let CHAT_HISTORY = [];
 document.addEventListener('DOMContentLoaded', function() {
   get_models();
   get_teachers();
+  
+  // tooltip for 'refresh' button
+  const refreshButton = document.getElementById('refreshSelectors');
+  if (refreshButton) {
+    new bootstrap.Tooltip(refreshButton);
+  }
+});
+
+
+// Refresh selectors button click handler
+document.getElementById('refreshSelectors').addEventListener('click', function() {
+  loadTeachers();
+  loadModels();
 });
 
 
@@ -24,94 +37,81 @@ document.getElementById('modelSelect').addEventListener('change', function() {
 });
 
 
+// Load models from API if no cache
+async function loadModels() {
+  try {
+    const response = await fetch('models/', { credentials: 'same-origin' });
+
+    if (!response.ok) {
+      console.error('Failed to fetch models:', response.status);
+      return;
+    }
+    
+    const { models } = await response.json();
+
+    if (!Array.isArray(models)) {
+      console.error('Invalid models format');
+      return;
+    }
+    
+    localStorage.setItem('cachedModels', JSON.stringify(models));
+    fillModelsSelector(JSON.stringify(models));
+
+  } catch (error) {
+    console.error('Failed to load models:', error);
+  }
+}
+
 // gets all the available openRouter LLM models
 function get_models() {
-  // селектор моделей
-  const selectEl = document.getElementById('modelSelect');
   // cached models
   const cachedModels = localStorage.getItem('cachedModels');
-  // Restore selection from Storage 
-  const cachedSelection = localStorage.getItem('selectedModel');
-  
   // If models are cached, populate select
   if (cachedModels) {
-    try {
-      const models = JSON.parse(cachedModels);
-      selectEl.innerHTML = '';
-      
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.disabled = true;
-      placeholder.selected = !selectEl.value;
-      placeholder.textContent = 'Выбрать модель';
-      selectEl.appendChild(placeholder);
-      
-      for (const model of models) {
-        const option = document.createElement('option');
-        option.value = model;
-        option.textContent = model;
-        if (model === selectEl.value) {
-          option.selected = true;
-        }
-        selectEl.appendChild(option);
-      }
-
-      // set selected model from cache
-      if(cachedSelection){
-        selectEl.value = cachedSelection;
-      }
-
-      return;
-
-    } catch (e) {
-      console.error('Failed to parse cached models', e);
-    }
+    fillModelsSelector(cachedModels)
   }else{
     loadModels()
-  }
-
-
-  // Load models from API if no cache
-  async function loadModels() {
-    try {
-      const response = await fetch('models/', { credentials: 'same-origin' });
-
-      if (!response.ok) {
-        console.error('Failed to fetch models:', response.status);
-        return;
-      }
-      const { models } = await response.json();
-      if (!Array.isArray(models)) {
-        console.error('Invalid models format');
-        return;
-      }
-      
-      localStorage.setItem('cachedModels', JSON.stringify(models));
-      
-      selectEl.innerHTML = '';
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.disabled = true;
-      placeholder.selected = !selectEl.value;
-      placeholder.textContent = 'Выбрать модель';
-      selectEl.appendChild(placeholder);
-      
-      for (const model of models) {
-        const option = document.createElement('option');
-        option.value = model;
-        option.textContent = model;
-        if (model === selectEl.value) {
-          option.selected = true;
-        }
-        selectEl.appendChild(option);
-      }
-    } catch (error) {
-      console.error('Failed to load models:', error);
-    }
   }
 };
 
 
+// Fill models selector
+function fillModelsSelector(cachedModels){
+
+  // селектор моделей
+  const selectEl = document.getElementById('modelSelect');
+  // Restore selection from Storage 
+  const cachedSelection = localStorage.getItem('selectedModel');  
+
+  try {
+    const models = JSON.parse(cachedModels);
+    selectEl.innerHTML = '';
+    
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = !selectEl.value;
+    placeholder.textContent = 'Выбрать модель';
+    selectEl.appendChild(placeholder);
+    
+    for (const model of models) {
+      const option = document.createElement('option');
+      option.value = model;
+      option.textContent = model;
+      if (model === selectEl.value) {
+        option.selected = true;
+      }
+      selectEl.appendChild(option);
+    }
+
+    // set selected model from cache
+    if(cachedSelection){
+      selectEl.value = cachedSelection;
+    }
+  } catch (e) {
+    console.error('Failed to parse cached models', e);
+  }
+}
 
 // ----------------------------------- end LLM Models----------------------------------------------
 
