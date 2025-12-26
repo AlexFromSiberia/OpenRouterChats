@@ -1,18 +1,18 @@
 // JS for Home page
-
+// история чата в localStorage
 
 // add teacher - modal
 const addTeacherModal = new bootstrap.Modal(document.getElementById('addTeacherModal'));
 // Clear chat history - modal
 const clearChatModal = new bootstrap.Modal(document.getElementById('clearChatModal'));
-// Тут храним текущую переписку пользователя
-let CHAT_HISTORY = [];
+
 
 
 // load Teachers and Models
 document.addEventListener('DOMContentLoaded', function() {
   get_models();
   get_teachers();
+  fillChatHistory(getChatHistory());
   
   // tooltip for 'refresh' button
   const refreshButton = document.getElementById('refreshSelectors');
@@ -285,7 +285,7 @@ async function sendMessage() {
     model: document.getElementById('modelSelect').value,     // localStorage.getItem('selectedModel');
     teacher: document.getElementById('teacherSelect').value, // localStorage.getItem('selectedTeacher');
     message: document.getElementById('sendMessageInput').value,
-    chat_history: CHAT_HISTORY,
+    chat_history: getChatHistory(),
   }
 
   try {
@@ -303,8 +303,8 @@ async function sendMessage() {
       console.log(payload.error)
     }else{
       document.getElementById('sendMessageInput').value = ''
-      CHAT_HISTORY = payload.chat_history;
-      fillChatHistory(CHAT_HISTORY)
+      saveChatHistory(payload.chat_history);
+      fillChatHistory(getChatHistory());
     }
   } catch (e) {
     console.log(e)
@@ -318,7 +318,7 @@ async function sendMessage() {
 }
 
 
-// При клике "Отправить" проверяем, выбрана ли модель и учителя, если нет - селекторы выделим красным, данные не отправляем
+// Проверка - при клике "Отправить": выбрана ли модель и учитель, если нет - селекторы выделим красным, данные не отправляем
 function checkBeforeSend(event){
   const selectmodel = document.getElementById('modelSelect');
   const selectteacher = document.getElementById('teacherSelect');
@@ -383,12 +383,25 @@ document.getElementById('clearChatButton').addEventListener('click', function() 
   clearChatModal.show();
 });
 
-// clear Chat - Handle confirmation
+
+// clear Chat - confirmation
 document.getElementById('confirmClearChat').addEventListener('click', function() {
-  CHAT_HISTORY = [];
-  fillChatHistory(CHAT_HISTORY);
+  localStorage.setItem('chatHistory', JSON.stringify([]));
+  fillChatHistory(getChatHistory());
   clearChatModal.hide();
 });
 
+
+
+
+
+
+function saveChatHistory(history) {
+  localStorage.setItem('chatHistory', JSON.stringify(history));
+}
+
+function getChatHistory() {
+  return JSON.parse(localStorage.getItem('chatHistory')) || [];
+}
 
 
