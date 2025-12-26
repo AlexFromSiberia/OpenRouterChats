@@ -210,10 +210,14 @@ def send_message(request):
         return JsonResponse({'error': 'Выберите бесплатную модель (:free).'}, status=400)
 
 
-    prompt = [{'role': 'user', 'content': Teachers.objects.get(id=teacher_id).prompt}]
+    teacher_prompt = (Teachers.objects.get(id=teacher_id).prompt or '').strip()
+    # Для чата БЕЗ учителя ничего не добавляем (учительский промт не вставляем в начало)
+    # Учительский промт будет использован как системный контекст, если он есть
+    if teacher_prompt:
+        prompt = [{'role': 'user', 'content': teacher_prompt}]
 
-    if not messages_for_model or (messages_for_model and prompt[0] != messages_for_model[0]):
-        messages_for_model = prompt + messages_for_model
+        if not messages_for_model or (messages_for_model and prompt[0] != messages_for_model[0]):
+            messages_for_model = prompt + messages_for_model
 
     try:
         with OpenRouter(api_key=OPENROUTER_API_KEY) as client:
