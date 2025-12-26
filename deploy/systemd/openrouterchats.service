@@ -7,8 +7,9 @@ Type=notify
 User=www-data
 Group=www-data
 RuntimeDirectory=gunicorn
-WorkingDirectory=/var/www/openrouterchats
+WorkingDirectory=/var/www/openrouterchats/OpenRouterChats
 Environment="PATH=/var/www/openrouterchats/venv/bin"
+Environment="PYTHONPATH=/var/www/openrouterchats"
 EnvironmentFile=/var/www/openrouterchats/.env
 ExecStart=/var/www/openrouterchats/venv/bin/gunicorn \
           --config /var/www/openrouterchats/gunicorn_config.py \
