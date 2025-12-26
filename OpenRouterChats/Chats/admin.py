@@ -9,6 +9,14 @@ from .models import Users, Teachers
 class UsersAdmin(admin.ModelAdmin):
     list_display = ('id', 'login', 'type', 'is_active')
     search_fields = ('login','type', 'is_active',)
+    list_editable = ('login', 'type', 'is_active')
+    list_filter = ('type', 'is_active')
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('login', 'type', 'is_active')
+        }),
+    )
 
 
 @admin.register(Teachers)
