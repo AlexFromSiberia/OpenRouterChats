@@ -230,6 +230,9 @@ document.getElementById('addTeacherButton').addEventListener('click', function (
 
       if (res.ok) {
         loadTeachers()
+        // Clear form fields
+        document.getElementById('teacherName').value = '';
+        document.getElementById('teacherPrompt').value = '';
       }else {
         console.error('Failed to create new teacher');
       }
@@ -254,6 +257,17 @@ document.getElementById('sendMessageButton').addEventListener('click', function 
     return;
   }
   sendMessage();
+})
+
+// 'Send message' input - Enter key handler
+document.getElementById('sendMessageInput').addEventListener('keydown', function (event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    if(checkBeforeSend(event) === 0){
+      return;
+    }
+    sendMessage();
+  }
 })
 
 // 'Send message' button - sends message to server
