@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.db import DatabaseError, IntegrityError, models
 from functools import wraps
+from django_ratelimit.decorators import ratelimit
 
 from .models import Teachers, Users
 from openrouter import OpenRouter
@@ -27,6 +28,7 @@ def _require_login(view_func):
 
 
 @require_http_methods(['GET', 'POST'])
+@ratelimit(key='ip', rate='10/5m', method='POST')
 def login_view(request):
     """Вход"""
     if request.session.get('user_id'):
@@ -40,6 +42,7 @@ def login_view(request):
         user = Users.objects.filter(login=login).first()
         if user and user.check_password(password):
             if not user.is_active:
+                sleep(2)
                 messages.info(request, 'Логин и пароль верные, дождитесь когда администратор активирует вашу запись.')
                 context['login'] = login
                 return render(request, 'Chats/login.html', context)
@@ -47,7 +50,9 @@ def login_view(request):
             request.session['user_id'] = user.id
             request.session['user_login'] = user.login
             return redirect('home')
-
+        
+        # Защита от брутфорса
+        sleep(2)
         messages.error(request, 'Неверный логин или пароль')
         context['login'] = login
 
@@ -55,6 +60,7 @@ def login_view(request):
 
 
 @require_http_methods(['GET', 'POST'])
+@ratelimit(key='ip', rate='3/h', method='POST')
 def register_view(request):
     """Регистрация нового пользователя (администратор активирует после проверки)
     """
@@ -157,6 +163,7 @@ def _extract_model_ids(models_res):
 
 @_require_login
 @require_http_methods(['GET'])
+@ratelimit(key='ip', rate='5/m', method='GET')
 def get_all_models(request):
     """Получение списка моделей open_router"""
     try:
@@ -186,6 +193,7 @@ def get_all_teachers(request):
 
 @_require_login
 @require_http_methods(['POST'])
+@ratelimit(key='user_or_ip', rate='30/m', method='POST')
 def send_message(request):
     """Отправка сообщения"""
     data = json.loads(request.body)
@@ -210,7 +218,7 @@ def send_message(request):
         return JsonResponse({'error': 'Выберите бесплатную модель (:free).'}, status=400)
 
 
-    teacher_prompt = (Teachers.objects.get(id=teacher_id).prompt or '').strip()
+    teacher_prompt = (Teachers.objects.filter(id=teacher_id).first().prompt or '').strip()
     # Для чата БЕЗ учителя ничего не добавляем (учительский промт не вставляем в начало)
     # Учительский промт будет использован как системный контекст, если он есть
     if teacher_prompt:
@@ -236,6 +244,7 @@ def send_message(request):
 
 @_require_login
 @require_http_methods(['POST'])
+@ratelimit(key='user_or_ip', rate='10/m', method='POST')
 def create_new_teacher(request):
     """Создать нового учителя"""
     data = json.loads(request.body)
