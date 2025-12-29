@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.hashers import check_password, make_password
 
-# Create your models here.
-
 
 class Users(models.Model):
     """Пользователи
@@ -35,7 +33,7 @@ class Teachers(models.Model):
     """Преподаватели
     """
     name = models.CharField(max_length=200)
-    prompt = models.TextField(null=True, blank=True)
+    prompt = models.TextField(null=True, blank=True, max_length=10000)
     user = models.ForeignKey('Users', on_delete=models.SET_NULL, null=True, blank=True)
     
     class Meta:
