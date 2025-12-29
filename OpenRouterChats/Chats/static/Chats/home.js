@@ -41,6 +41,12 @@ document.getElementById('refreshSelectors').addEventListener('click', async func
   }, 2000);
 });
 
+// CSRF helper (reads cookie; safer than DOM scraping)
+function getCSRFToken() {
+  const match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
 
 // -----------------------------------LLM Models----------------------------------------------
 
@@ -232,8 +238,11 @@ document.getElementById('addTeacherButton').addEventListener('click', function (
       const res = await fetch('teachers/create/', 
         { credentials: 'same-origin', 
           method: 'POST', 
-          body: JSON.stringify(data), 
-          headers: { 'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value } 
+          body: JSON.stringify(data),
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+          } 
         }
       );
 
@@ -301,8 +310,11 @@ async function sendMessage() {
     const res = await fetch('send/', 
       { credentials: 'same-origin', 
         method: 'POST', 
-        body: JSON.stringify(data), 
-        headers: { 'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value } 
+        body: JSON.stringify(data),
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken(),
+        } 
       }
     );
 
