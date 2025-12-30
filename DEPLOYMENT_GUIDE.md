@@ -206,7 +206,7 @@ apt install -y certbot python3-certbot-nginx
 
 ### 10.2 Получите SSL сертификат
 ```bash
-certbot --nginx -d 151461.com/ -d www.151461.com/
+certbot --nginx -d alexfromsiberia.ru/ -d www.alexfromsiberia.ru/
 ```
 
 ### 10.3 Настройте автоматическое обновление

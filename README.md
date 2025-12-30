@@ -12,15 +12,15 @@ OpenRouterChats is an AI-powered educational assistant that helps students prepa
 The app acts as a bridge between students and AI tutors, providing structured interactions with different teaching styles and approaches.
 
 ### Key Files
-- **update_app.sh**: Script for updating the application components
+- **update_app.sh**: Script for updating the application components. Use the --req flag to update dependencies ( ./update_app.sh --req )
 - **UPDATE_GUIDE.md**: Instructions for updating the application manually
 - **DEPLOYMENT_GUIDE.md**: Step-by-step guide for deploying the application
 
 ### Technology Stack
 - Backend: Django (Python)
 - Database: SQLite
-- Deployment: WSGI (Gunicorn)
-- Frontend: Django Templates
+- Deployment: Nginx + WSGI (Gunicorn)
+- Frontend: Django Templates + Bootstrap 5 + vanilla JS
 - AI Integration: OpenRouter API
 
 ---
@@ -37,13 +37,13 @@ OpenRouterChats - это образовательный помощник на о
 Приложение выступает в роли посредника между студентами и ИИ-преподавателями, обеспечивая структурированное взаимодействие с разными стилями преподавания.
 
 ### Ключевые Файлы
-- **update_app.sh**: Скрипт для обновления компонентов приложения
+- **update_app.sh**: Скрипт для обновления компонентов приложения. Используй флаг --req для обновления зависимостей ( ./update_app.sh --req )
 - **UPDATE_GUIDE.md**: Инструкции по ручному обновлению приложения
 - **DEPLOYMENT_GUIDE.md**: Пошаговое руководство по развертыванию приложения
 
 ### Технологический Стек
 - Бэкенд: Django (Python)
 - База данных: SQLite
-- Развертывание: WSGI (Gunicorn)
-- Фронтенд: Django Templates
+- Развертывание: Nginx + WSGI (Gunicorn)
+- Фронтенд: Django Templates + Bootstrap 5 + vanilla JS
 - Интеграция с ИИ: OpenRouter API

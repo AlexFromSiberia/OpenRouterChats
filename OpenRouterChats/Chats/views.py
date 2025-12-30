@@ -1,3 +1,4 @@
+import logging
 from time import sleep
 import json
 from django.shortcuts import redirect, render
@@ -11,6 +12,9 @@ from django_ratelimit.decorators import ratelimit
 from .models import Teachers, Users
 from openrouter import OpenRouter
 from OpenRouterChats.settings import OPENROUTER_API_KEY
+
+
+logger = logging.getLogger(__name__)
 
 
 def _require_login(view_func):
@@ -185,7 +189,9 @@ def get_all_models(request):
         model_ids = _extract_model_ids(res)
         free_models = sorted({m for m in model_ids if isinstance(m, str) and m.endswith(':free')})
         return JsonResponse({'models': free_models})
-    except Exception:
+    except Exception as e:
+        print(e)
+        logger.exception("Failed to fetch OpenRouter models")
         return JsonResponse({'models': []}, status=502)
 
 
@@ -254,7 +260,9 @@ def send_message(request):
         # limit chat history to 200 messages
         chat_history = chat_history[-200:]
         return JsonResponse({'chat_history': chat_history})
-    except Exception:
+    except Exception as e:
+        print(e)
+        logger.exception("Failed to send chat message via OpenRouter")
         messages.error(request, 'Не удалось получить ответ от модели. Попробуйте ещё раз.')
         return JsonResponse({'error': 'Не удалось получить ответ от модели. Попробуйте ещё раз.'}, status=500)
 
