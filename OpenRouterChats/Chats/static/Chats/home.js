@@ -380,7 +380,7 @@ function fillChatHistory(payload){
   chatEl.innerHTML = '';
     
   if(payload.length === 0){
-    chatEl.innerHTML = '<div class="text-secondary small">Напиши сообщение, чтобы начать чат.</div>';
+    chatEl.innerHTML = '<div class="text-secondary small">Нет сообщений...</div>';
     return;
   }else{
     for (const msg of payload){
