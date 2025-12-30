@@ -14,6 +14,7 @@ class Users(models.Model):
     login = models.CharField(max_length=150, unique=True)
     password_hash = models.CharField(max_length=128)
     type = models.CharField(max_length=50, choices=TYPES, default='user')
+    # По умолчанию False - всех новых пользователей должен активировать администратор
     is_active = models.BooleanField(default=False)
 
     class Meta:

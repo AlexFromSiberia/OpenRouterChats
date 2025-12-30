@@ -269,6 +269,8 @@ document.getElementById('addTeacherButton').addEventListener('click', function (
 // -----------------------------------end Teachers------------------------------------------------------
 
 
+// ----------------------------------- SEND MESSAGE ----------------------------------------------------  
+
 // 'Send message' button
 document.getElementById('sendMessageButton').addEventListener('click', function (event) {
   if(checkBeforeSend(event) === 0){
@@ -367,7 +369,10 @@ function checkBeforeSend(event){
     return 0;
   }
 }
+// ----------------------------------- end SEND MESSAGE ------------------------------------------------  
 
+
+// ----------------------------------- CHAT window --------------------------------------------------
 
 // fill chat history
 function fillChatHistory(payload){
@@ -413,10 +418,6 @@ document.getElementById('confirmClearChat').addEventListener('click', function()
 });
 
 
-
-
-
-
 function saveChatHistory(history) {
   localStorage.setItem('chatHistory', JSON.stringify(history));
 }
@@ -426,3 +427,4 @@ function getChatHistory() {
 }
 
 
+// ----------------------------------- end CHAT window -------------------------------------------

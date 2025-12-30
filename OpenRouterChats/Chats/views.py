@@ -78,10 +78,22 @@ def register_view(request):
         if not login or not password:
             messages.error(request, 'Логин и пароль обязательны')
             return render(request, 'Chats/register.html', context)
+        
+        if len(login) > 150:
+            messages.error(request, 'Логин не может быть длиннее 150 символов')
+            return render(request, 'Chats/register.html', context)
 
         if password != password2:
             messages.error(request, 'Пароли не совпадают')
             return render(request, 'Chats/register.html', context)
+        
+        if len(password) > 128:
+            messages.error(request, 'Пароль не может быть длиннее 128 символов')
+            return render(request, 'Chats/register.html', context)        
+        
+        if len(password) < 8:
+            messages.error(request, 'Пароль должен содержать не менее 8 символов')
+            return render(request, 'Chats/register.html', context)        
 
         if Users.objects.filter(login=login).exists():
             # Добавляем задержку для защиты от брутфорса
@@ -91,7 +103,7 @@ def register_view(request):
 
         user = Users(login=login)
         user.set_password(password)
-        #user.is_active = False
+        #By default user.is_active = False in Users model
         user.save()
 
         messages.info(request, 'Регистрация успешна. Дождитесь когда администратор активирует вашу запись.')
@@ -204,6 +216,9 @@ def send_message(request):
     model = data.get('model').strip()
     messages_for_model = chat_history[-20:]
     
+    if len(message) > 3000:
+        messages.error(request, 'Сообщение не может быть длиннее 3000 символов.')
+        return JsonResponse({'error': 'Сообщение не может быть длиннее 3000 символов.'}, status=400)
     if not message:
         messages.error(request, 'Сообщение не может быть пустым.')
         return JsonResponse({'error': 'Сообщение не может быть пустым.'}, status=400)
@@ -236,6 +251,8 @@ def send_message(request):
             answer = response.choices[0].message.content
 
         chat_history.append({'role': 'assistant', 'content': answer})
+        # limit chat history to 200 messages
+        chat_history = chat_history[-200:]
         return JsonResponse({'chat_history': chat_history})
     except Exception:
         messages.error(request, 'Не удалось получить ответ от модели. Попробуйте ещё раз.')
@@ -250,14 +267,22 @@ def create_new_teacher(request):
     data = json.loads(request.body)
     name = data.get('name', '').strip()
     prompt = data.get('prompt', '').strip()
-
+    
     if not name:
         messages.error(request, 'Имя учителя обязательно.')
         return JsonResponse({'error': 'Имя учителя обязательно.'}, status=400)
+    
+    if name and len(name) > 200:
+        messages.error(request, 'Имя учителя не может быть длиннее 200 символов.')
+        return JsonResponse({'error': 'Имя учителя не может быть длиннее 200 символов.'}, status=400)
 
     if not prompt:
         messages.error(request, 'Описание учителя обязательно.')
         return JsonResponse({'error': 'Описание учителя обязательно.'}, status=400)
+
+    if prompt and len(prompt) > 10000:
+        messages.error(request, 'Описание учителя не может быть длиннее 10000 символов.')
+        return JsonResponse({'error': 'Описание учителя не может быть длиннее 10000 символов.'}, status=400)
 
     user = Users.objects.filter(id=request.session.get('user_id')).first()
     message = 'Учитель добавлен.'
