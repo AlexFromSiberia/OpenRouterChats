@@ -5,7 +5,7 @@ from django.shortcuts import render
 
 class RatelimitMiddleware:
     """Middleware для обработки исключений превышения лимита запросов"""
-    
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -22,5 +22,28 @@ class RatelimitMiddleware:
                 }, status=429)
             # Для обычных запросов: Возвращает HTML страницу 429.html с кодом 429
             return render(request, 'Chats/429.html', status=429)
-        
+
         return None
+
+
+class ContentSecurityPolicyMiddleware:
+    """Устанавливает строгий CSP для защиты от XSS"""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self'; "
+            "style-src 'self'; "
+            "img-src 'self' data:; "
+            "font-src 'self'; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+        response['Content-Security-Policy'] = csp
+        return response
