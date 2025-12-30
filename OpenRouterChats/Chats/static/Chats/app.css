@@ -1,0 +1,35 @@
+/* Custom styles for OpenRouterChats */
+
+/* Navbar selects */
+.teacher-select {
+  max-width: 240px;
+}
+
+.model-select {
+  max-width: 280px;
+}
+
+/* Chat layout */
+#chat {
+  max-height: 75vh;
+  overflow: auto;
+}
+
+.chat-bubble {
+  max-width: 80%;
+  white-space: pre-wrap;
+}
+
+/* Alerts */
+.alert-close-btn {
+  margin: 0.5rem;
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  padding: 0.1rem;
+}
+
+/* Rate limit page */
+.rate-limit-icon {
+  font-size: 4rem;
+}

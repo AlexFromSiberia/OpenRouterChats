@@ -391,7 +391,7 @@ function fillChatHistory(payload){
       }else{
         div.classList.add('justify-content-start');
       }
-      div.innerHTML = `<div class="px-3 py-2 rounded-3 ${msg.role == 'user'?'bg-primary':'bg-secondary' } text-white" style="max-width: 80%; white-space: pre-wrap;">${msg.content}</div>`;
+      div.innerHTML = `<div class="px-3 py-2 rounded-3 ${msg.role == 'user'?'bg-primary':'bg-secondary' } text-white chat-bubble">${msg.content}</div>`;
       chatEl.appendChild(div);
     }
 

@@ -8,6 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="{% static 'Chats/favicon.svg' %}">
     <link href="{% static 'Chats/vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'Chats/vendor/bootstrap-icons/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'Chats/app.css' %}">
   </head>
   <body class="bg-body-tertiary">
     <nav class="navbar navbar-expand-lg bg-body border-bottom">
@@ -18,10 +19,10 @@
             <button id="refreshSelectors" class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Обновить списки">
               <i class="bi bi-arrow-clockwise"></i>
             </button>          
-            <select id="teacherSelect" class="form-select form-select-sm" style="max-width: 240px;" aria-label="Выбор учителя" data-selected-teacher="{{ request.session.selected_teacher|default:'' }}" data-teachers-url="{% url 'get_all_teachers' %}">
+            <select id="teacherSelect" class="form-select form-select-sm teacher-select" aria-label="Выбор учителя" data-selected-teacher="{{ request.session.selected_teacher|default:'' }}" data-teachers-url="{% url 'get_all_teachers' %}">
               <option value="" selected disabled>Выбрать учителя</option>
             </select>
-            <select id="modelSelect" class="form-select form-select-sm" style="max-width: 280px;" aria-label="Выбор модели" data-selected-model="{{ request.session.selected_model|default:'' }}" data-models-url="{% url 'get_all_models' %}">
+            <select id="modelSelect" class="form-select form-select-sm model-select" aria-label="Выбор модели" data-selected-model="{{ request.session.selected_model|default:'' }}" data-models-url="{% url 'get_all_models' %}">
               <option value="" selected disabled>Выбрать модель</option>
             </select>
             <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">Выйти</button>
