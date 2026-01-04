@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.db import DatabaseError, IntegrityError, models
 from functools import wraps
 from django_ratelimit.decorators import ratelimit
+from django_ratelimit.core import is_ratelimited
 
 from .models import Teachers, Users
 from OpenRouterChats.settings import OPENROUTER_API_KEY
@@ -45,6 +46,29 @@ def _require_login_async(view_func):
         return await view_func(request, *args, **kwargs)
 
     return _wrapped
+
+
+def ratelimit_async(key, rate, method='ALL'):
+    """Асинхронная версия декоратора ratelimit"""
+    def decorator(view_func):
+        @wraps(view_func)
+        async def _wrapped(request, *args, **kwargs):
+            # Используем sync_to_async для проверки rate limit
+            ratelimited = await sync_to_async(is_ratelimited)(
+                request=request, 
+                fn=view_func,  # Передаём функцию для правильной работы django-ratelimit
+                key=key, 
+                rate=rate, 
+                method=method,
+                increment=True
+            )
+            
+            if ratelimited:
+                return JsonResponse({'error': 'Rate limit exceeded'}, status=429)
+            
+            return await view_func(request, *args, **kwargs)
+        return _wrapped
+    return decorator
 
 
 @require_http_methods(['GET', 'POST'])
@@ -195,7 +219,7 @@ def _extract_model_ids(models_res):
 
 @_require_login_async
 @require_http_methods(['GET'])
-#@ratelimit(key='ip', rate='5/m', method='GET')
+@ratelimit_async(key='ip', rate='5/m', method='GET')
 async def get_all_models():
     """Получение списка моделей open_router"""
     try:
@@ -227,7 +251,7 @@ def get_all_teachers():
 
 @_require_login_async
 @require_http_methods(['POST'])
-#@ratelimit(key='user_or_ip', rate='30/m', method='POST')
+@ratelimit_async(key='user_or_ip', rate='30/m', method='POST')
 async def send_message(request):
     """Отправка сообщения"""
     data = json.loads(request.body)
