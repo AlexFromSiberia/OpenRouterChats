@@ -34,6 +34,21 @@ def _require_login(view_func):
     return _wrapped
 
 
+def _require_login_async(view_func):
+    """Проверка авторизации для асинхронных view"""
+    @wraps(view_func)
+    async def _wrapped(request, *args, **kwargs):
+        # В асинхронном контексте нужно использовать sync_to_async для работы с сессией
+        user_id = await sync_to_async(request.session.get)('user_id')
+        if not user_id:
+            return redirect('login')
+
+        request.user_login = await sync_to_async(request.session.get)('user_login')
+        return await view_func(request, *args, **kwargs)
+
+    return _wrapped
+
+
 @require_http_methods(['GET', 'POST'])
 @ratelimit(key='ip', rate='10/5m', method='POST')
 def login_view(request):
@@ -180,7 +195,7 @@ def _extract_model_ids(models_res):
     return model_ids
 
 
-#@_require_login
+@_require_login_async
 @require_http_methods(['GET'])
 #@ratelimit(key='ip', rate='5/m', method='GET')
 async def get_all_models(request):
@@ -217,7 +232,7 @@ def get_all_teachers(request):
     return JsonResponse({'teachers': teachers})
 
 
-#@_require_login
+@_require_login_async
 @require_http_methods(['POST'])
 #@ratelimit(key='user_or_ip', rate='30/m', method='POST')
 async def send_message(request):
