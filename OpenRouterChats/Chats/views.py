@@ -2,7 +2,6 @@ import logging
 from time import sleep
 import json
 import httpx
-#import asyncio
 from asgiref.sync import sync_to_async
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -13,7 +12,6 @@ from functools import wraps
 from django_ratelimit.decorators import ratelimit
 
 from .models import Teachers, Users
-#from openrouter import OpenRouter
 from OpenRouterChats.settings import OPENROUTER_API_KEY
 
 
@@ -198,7 +196,7 @@ def _extract_model_ids(models_res):
 @_require_login_async
 @require_http_methods(['GET'])
 #@ratelimit(key='ip', rate='5/m', method='GET')
-async def get_all_models(request):
+async def get_all_models():
     """Получение списка моделей open_router"""
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -220,14 +218,9 @@ async def get_all_models(request):
 
 @_require_login
 @require_http_methods(['GET'])
-def get_all_teachers(request):
+def get_all_teachers():
     """Получение списка учителей"""
-    #user_id = request.session.get('user_id')
-
     qs = Teachers.objects.all()
-    # if user_id:
-    #     qs = qs.filter(models.Q(user__isnull=True) | models.Q(user_id=user_id))
-
     teachers = list(qs.order_by('name', 'id').values('id', 'name'))
     return JsonResponse({'teachers': teachers})
 
