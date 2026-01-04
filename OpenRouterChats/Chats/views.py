@@ -1,6 +1,9 @@
 import logging
 from time import sleep
 import json
+import httpx
+#import asyncio
+from asgiref.sync import sync_to_async
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
@@ -10,7 +13,7 @@ from functools import wraps
 from django_ratelimit.decorators import ratelimit
 
 from .models import Teachers, Users
-from openrouter import OpenRouter
+#from openrouter import OpenRouter
 from OpenRouterChats.settings import OPENROUTER_API_KEY
 
 
@@ -177,14 +180,19 @@ def _extract_model_ids(models_res):
     return model_ids
 
 
-@_require_login
+#@_require_login
 @require_http_methods(['GET'])
-@ratelimit(key='ip', rate='5/m', method='GET')
-def get_all_models(request):
+#@ratelimit(key='ip', rate='5/m', method='GET')
+async def get_all_models(request):
     """Получение списка моделей open_router"""
     try:
-        with OpenRouter(api_key=OPENROUTER_API_KEY) as open_router:
-            res = open_router.models.list()
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                'https://openrouter.ai/api/v1/models',
+                headers={'Authorization': f'Bearer {OPENROUTER_API_KEY}'}
+            )
+            response.raise_for_status()
+            res = response.json()
 
         model_ids = _extract_model_ids(res)
         free_models = sorted({m for m in model_ids if isinstance(m, str) and m.endswith(':free')})
@@ -209,10 +217,10 @@ def get_all_teachers(request):
     return JsonResponse({'teachers': teachers})
 
 
-@_require_login
+#@_require_login
 @require_http_methods(['POST'])
-@ratelimit(key='user_or_ip', rate='30/m', method='POST')
-def send_message(request):
+#@ratelimit(key='user_or_ip', rate='30/m', method='POST')
+async def send_message(request):
     """Отправка сообщения"""
     data = json.loads(request.body)
     message = data.get('message', '').strip()
@@ -239,7 +247,8 @@ def send_message(request):
         return JsonResponse({'error': 'Выберите бесплатную модель (:free).'}, status=400)
 
 
-    teacher_prompt = (Teachers.objects.filter(id=teacher_id).first().prompt or '').strip()
+    teacher = await sync_to_async(Teachers.objects.filter(id=teacher_id).first)()
+    teacher_prompt = (teacher.prompt or '').strip() if teacher else ''
     # Для чата БЕЗ учителя ничего не добавляем (учительский промт не вставляем в начало)
     # Учительский промт будет использован как системный контекст, если он есть
     if teacher_prompt:
@@ -249,12 +258,21 @@ def send_message(request):
             messages_for_model = prompt + messages_for_model
 
     try:
-        with OpenRouter(api_key=OPENROUTER_API_KEY) as client:
-            response = client.chat.send(
-                model=model,
-                messages=messages_for_model,
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+                'https://openrouter.ai/api/v1/chat/completions',
+                headers={
+                    'Authorization': f'Bearer {OPENROUTER_API_KEY}',
+                    'Content-Type': 'application/json',
+                },
+                json={
+                    'model': model,
+                    'messages': messages_for_model,
+                }
             )
-            answer = response.choices[0].message.content
+            response.raise_for_status()
+            result = response.json()
+            answer = result['choices'][0]['message']['content']
 
         chat_history.append({'role': 'assistant', 'content': answer})
         # limit chat history to 200 messages

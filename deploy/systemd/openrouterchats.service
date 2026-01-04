@@ -1,19 +1,22 @@
 [Unit]
-Description=OpenRouterChats Gunicorn daemon
+Description=OpenRouterChats Uvicorn ASGI daemon
 After=network.target
 
 [Service]
 Type=notify
 User=www-data
 Group=www-data
-RuntimeDirectory=gunicorn
+RuntimeDirectory=uvicorn
 WorkingDirectory=/var/www/openrouterchats/OpenRouterChats
 Environment="PATH=/var/www/openrouterchats/venv/bin"
 Environment="PYTHONPATH=/var/www/openrouterchats"
 EnvironmentFile=/var/www/openrouterchats/.env
-ExecStart=/var/www/openrouterchats/venv/bin/gunicorn \
-          --config /var/www/openrouterchats/gunicorn_config.py \
-          OpenRouterChats.wsgi:application
+ExecStart=/var/www/openrouterchats/venv/bin/uvicorn \
+          --host 127.0.0.1 \
+          --port 8000 \
+          --workers 4 \
+          --log-level info \
+          OpenRouterChats.asgi:application
 ExecReload=/bin/kill -s HUP $MAINPID
 KillMode=mixed
 TimeoutStopSec=5
