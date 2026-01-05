@@ -241,7 +241,7 @@ async def get_all_models():
 
 @_require_login
 @require_http_methods(['GET'])
-def get_all_teachers():
+def get_all_teachers(request):
     """Получение списка учителей"""
     qs = Teachers.objects.all()
     teachers = list(qs.order_by('name', 'id').values('id', 'name'))
