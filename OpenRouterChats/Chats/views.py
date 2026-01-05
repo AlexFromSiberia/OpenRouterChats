@@ -122,7 +122,7 @@ def register_view(request):
         if not login or not password:
             messages.error(request, 'Логин и пароль обязательны')
             return render(request, 'Chats/register.html', context)
-        
+
         if len(login) > 150:
             messages.error(request, 'Логин не может быть длиннее 150 символов')
             return render(request, 'Chats/register.html', context)
@@ -130,11 +130,11 @@ def register_view(request):
         if password != password2:
             messages.error(request, 'Пароли не совпадают')
             return render(request, 'Chats/register.html', context)
-        
+
         if len(password) > 128:
             messages.error(request, 'Пароль не может быть длиннее 128 символов')
             return render(request, 'Chats/register.html', context)        
-        
+
         if len(password) < 8:
             messages.error(request, 'Пароль должен содержать не менее 8 символов')
             return render(request, 'Chats/register.html', context)        
@@ -166,7 +166,6 @@ def logout_view(request):
 def home_view(request):
     """Главная страница"""
     user_login = getattr(request, 'user_login', None)
-
     chat_history = request.session.get('chat_history') or []
 
     return render(
@@ -261,7 +260,7 @@ async def send_message(request):
     chat_history.append({'role': 'user', 'content': message})
     model = data.get('model').strip()
     messages_for_model = chat_history[-20:]
-    
+
     if len(message) > 3000:
         messages.error(request, 'Сообщение не может быть длиннее 3000 символов.')
         return JsonResponse({'error': 'Сообщение не может быть длиннее 3000 символов.'}, status=400)
@@ -277,7 +276,6 @@ async def send_message(request):
     if not model.endswith(':free'):
         messages.error(request, 'Выберите бесплатную модель (:free).')
         return JsonResponse({'error': 'Выберите бесплатную модель (:free).'}, status=400)
-
 
     teacher = await sync_to_async(Teachers.objects.filter(id=teacher_id).first, thread_sensitive=True)()
     teacher_prompt = (teacher.prompt or '').strip() if teacher else ''
@@ -325,11 +323,11 @@ def create_new_teacher(request):
     data = json.loads(request.body)
     name = data.get('name', '').strip()
     prompt = data.get('prompt', '').strip()
-    
+
     if not name:
         messages.error(request, 'Имя учителя обязательно.')
         return JsonResponse({'error': 'Имя учителя обязательно.'}, status=400)
-    
+
     if name and len(name) > 200:
         messages.error(request, 'Имя учителя не может быть длиннее 200 символов.')
         return JsonResponse({'error': 'Имя учителя не может быть длиннее 200 символов.'}, status=400)
@@ -358,7 +356,7 @@ def create_new_teacher(request):
 def get_messages_view(request):
     """Получение сообщений Django messages через AJAX"""
     from django.contrib.messages import get_messages
-    
+
     message_list = []
     storage = get_messages(request)
     for message in storage:
@@ -366,6 +364,6 @@ def get_messages_view(request):
             'text': str(message),
             'tags': message.tags
         })
-    
+
     return JsonResponse({'messages': message_list})
 
