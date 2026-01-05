@@ -5,3 +5,11 @@ django
 python-dotenv>=1.2.1
 whitenoise>=6.6.0
 django-ratelimit>=4.1.0
+
+# Testing dependencies
+pytest>=8.0.0
+pytest-django>=4.5.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.0.0
+pytest-dotenv>=0.5.4
+freezegun>=1.2.0
