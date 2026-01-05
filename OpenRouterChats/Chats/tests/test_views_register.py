@@ -15,62 +15,62 @@
 14. test_register_redirect_to_login - редирект на login после успешной регистрации
 15. test_register_already_authenticated - редирект если уже авторизован
 
- - Дополнительные тесты валидации (4):
-test_register_password_validation_edge_cases - граничные случаи пароля (7 символов)
-test_register_password_validation_min_length - минимальная длина (8 символов)
-test_register_password_validation_max_length - максимальная длина (128 символов)
-test_register_password_validation_too_long - слишком длинный пароль (129 символов)
+Дополнительные тесты валидации (4):
+    test_register_password_validation_edge_cases - граничные случаи пароля (7 символов)
+    test_register_password_validation_min_length - минимальная длина (8 символов)
+    test_register_password_validation_max_length - максимальная длина (128 символов)
+    test_register_password_validation_too_long - слишком длинный пароль (129 символов)
 
- - Дополнительные тесты логина (4):
-test_register_login_validation_edge_cases - граничные случаи логина (150 символов)
-test_register_login_validation_too_long - слишком длинный логин (151 символ)
-test_register_login_validation_empty - пустой логин
-test_register_login_validation_whitespace_only - логин с пробелами
+Дополнительные тесты логина (4):
+    test_register_login_validation_edge_cases - граничные случаи логина (150 символов)
+    test_register_login_validation_too_long - слишком длинный логин (151 символ)
+    test_register_login_validation_empty - пустой логин
+    test_register_login_validation_whitespace_only - логин с пробелами
 
- - Дополнительные тесты безопасности (5):
-test_register_empty_both - пустые логин и пароль
-test_register_form_context_preservation - сохранение контекста формы
-test_register_whitespace_handling - обработка пробелов в логине
-test_register_case_sensitivity - чувствительность к регистру
-test_register_csrf_protection - CSRF защита
+Дополнительные тесты безопасности (5):
+    test_register_empty_both - пустые логин и пароль
+    test_register_form_context_preservation - сохранение контекста формы
+    test_register_whitespace_handling - обработка пробелов в логине
+    test_register_case_sensitivity - чувствительность к регистру
+    test_register_csrf_protection - CSRF защита
 
 Особенности тестирования:
 Безопасность:
-Проверка CSRF защиты
-Rate limiting (3 запроса в час для регистрации)
-Защита от брутфорса (задержка 3 секунды при дубликате)
-Хеширование паролей
-Валидация всех полей
+    Проверка CSRF защиты
+    Rate limiting (3 запроса в час для регистрации)
+    Защита от брутфорса (задержка 3 секунды при дубликате)
+    Хеширование паролей
+    Валидация всех полей
 
 Валидация:
-Длина логина: 1-150 символов
-Длина пароля: 8-128 символов
-Обязательные поля: логин и пароль
-Совпадение паролей
-Уникальность логина
+    Длина логина: 1-150 символов
+    Длина пароля: 8-128 символов
+    Обязательные поля: логин и пароль
+    Совпадение паролей
+    Уникальность логина
 
 Редиректы:
-Успешная регистрация → login
-Уже авторизован → home
-Сохранение контекста при ошибках
+    Успешная регистрация → login
+    Уже авторизован → home
+    Сохранение контекста при ошибках
 
 База данных:
-Новый пользователь создается с is_active=False
-Пароль хешируется правильно
-Проверка уникальности логина
+    Новый пользователь создается с is_active=False
+    Пароль хешируется правильно
+    Проверка уникальности логина
 
 Сообщения:
-Все типы сообщений проверены (info, error)
-Локализованные сообщения на русском
-Правильные тексты ошибок
+    Все типы сообщений проверены (info, error)
+    Локализованные сообщения на русском
+    Правильные тексты ошибок
 
 Технические решения:
-Изоляция тестов - очистка кэша и сообщений между тестами
-Разделение тестов - отдельные методы для избежания rate limiting
-Мокирование - правильная работа с sleep и rate limiting
-Покрытие - все основные и граничные случаи
-Очистка - proper cleanup между тестами
-Общее покрытие register_view: 100% 🎯
+    Изоляция тестов - очистка кэша и сообщений между тестами
+    Разделение тестов - отдельные методы для избежания rate limiting
+    Мокирование - правильная работа с sleep и rate limiting
+    Покрытие - все основные и граничные случаи
+    Очистка - proper cleanup между тестами
+    Общее покрытие register_view: 100%
 '''
 
 
