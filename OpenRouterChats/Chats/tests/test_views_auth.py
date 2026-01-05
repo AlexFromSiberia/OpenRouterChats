@@ -1,3 +1,53 @@
+'''
+1. test_login_page_get - GET запрос возвращает форму входа
+2. test_login_success_active_user - успешный вход активного пользователя
+3. test_login_redirect_to_home - редирект на home после входа
+4. test_login_inactive_user - неактивный пользователь не может войти
+5. test_login_wrong_password - неверный пароль
+6. test_login_wrong_username - несуществующий логин
+7. test_login_empty_credentials - пустые данные
+8. test_login_session_created - проверка создания сессии (user_id, user_login)
+9. test_login_already_authenticated - редирект если уже авторизован
+10. test_login_rate_limit - проверка rate limiting (10/5m для POST)
+11. test_login_bruteforce_delay - проверка задержки при неудачной попытке (2 сек)
+
+Дополнительные тесты для полного покрытия:
+test_login_session_data_persistence - сохранение сессии между запросами
+test_login_form_context_preservation - сохранение контекста формы
+test_login_csrf_protection - CSRF защита
+test_login_with_whitespace_handling - обработка пробелов в логине
+test_login_case_sensitivity - чувствительность к регистру
+
+Особенности тестирования:
+
+Безопасность:
+Проверка CSRF защиты
+Rate limiting (10 запросов за 5 минут)
+Защита от брутфорса (задержка 2 секунды)
+Валидация учетных данных
+
+Сессии:
+Создание сессии с user_id и user_login
+Сохранение сессии между запросами
+Редирект авторизованных пользователей
+
+Сообщения:
+Проверка всех типов сообщений (info, error)
+Локализованные сообщения на русском языке
+Сохранение контекста формы при ошибках
+
+Время:
+Использование patch для мокирования sleep
+Тестирование задержек без реального ожидания
+Proper cleanup между тестами
+Технические решения:
+Изоляция тестов - очистка кэша и сессий между тестами
+Мокирование - правильная работа с sleep и rate limiting
+Локализация - поддержка русских сообщений об ошибках
+Покрытие - все основные и граничные случаи
+'''
+
+
 import pytest
 from django.test import TestCase, Client
 from django.contrib import messages

@@ -1,3 +1,36 @@
+'''
+тесты для модели Teachers:
+    test_create_teacher - создание учителя с обязательными полями
+    test_teacher_str_method - проверка str метода
+    test_teacher_with_user - связь учителя с пользователем
+    test_tacher_without_user - учитель без пользователя (null=True)
+    test_teacher_prompt_null - промпт может быть null
+    test_teacher_prompt_blank - промпт может быть пустым
+    test_teacher_name_max_length - максимальная длина имени 200 символов
+    test_teacher_prompt_max_length - максимальная длина промпта 10000 символов
+    test_cascade_on_user_delete - SET_NULL при удалении пользователя
+    test_multiple_teachers_per_user - один пользователь может иметь нескольких учителейe
+
+Дополнительные тесты для полного покрытия:
+    Обновление полей
+    QuerySet методы и фильтрация
+    Сортировка
+    Удаление
+    Уникальность имени (не обязательна)
+    Атрибуты полей
+    Длинные промпты
+    Валидация пустых и null значений
+    Консистентность отношений
+
+Особенности тестирования:
+    Тесты корректно работают с blank=False для поля name
+    Проверяют валидацию через full_clean()
+    Учитывают особенности SQLite в тестовой среде
+    Покрывают все ограничения и связи модели
+'''
+
+
+
 import pytest
 from django.test import TestCase
 from django.db import IntegrityError

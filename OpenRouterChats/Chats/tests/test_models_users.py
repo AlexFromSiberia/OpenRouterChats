@@ -1,3 +1,29 @@
+'''
+Тесты модели Users:
+    test_create_user - создание пользователя с корректными данными
+    test_user_str_method - проверка str метода
+    test_set_password - проверка хеширования пароля
+    test_check_password_correct - проверка корректного пароля
+    test_check_password_incorrect - проверка некорректного пароля
+    test_user_default_type - проверка типа по умолчанию (user)
+    test_user_default_is_active - проверка is_active=False по умолчанию
+    test_unique_login_constraint - проверка уникальности логина
+    test_admin_user_type - создание администратора
+    test_password_hash_not_plain_text - пароль не хранится в открытом виде
+
+Дополнительные тесты для 100% покрытия:
+    test_user_types_choices - проверка всех допустимых типов
+    test_user_login_max_length - проверка максимальной длины логина
+    test_user_password_hash_max_length - проверка длины хеша
+    test_user_update_fields - обновление полей
+    test_user_queryset_methods - методы QuerySet
+    test_user_ordering - сортировка
+    test_user_delete - удаление
+    test_set_empty_password - пустой пароль
+    test_check_password_none - проверка None
+'''
+
+
 import pytest
 from django.test import TestCase
 from django.db import IntegrityError

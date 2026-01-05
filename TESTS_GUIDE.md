@@ -9,9 +9,9 @@ python -m pytest OpenRouterChats/Chats/tests/test_models_users.py -v
 
 **Для запуска всех тестов с покрытием:**
 ```bash
-source .venv/bin/activate
-export $(cat .env.test.clean | xargs)
-python -m pytest --cov=OpenRouterChats --cov-report=term-missing
+source .venv/bin/activate && 
+export $(cat .env.test.clean | xargs) && 
+python -m pytest OpenRouterChats/Chats/tests/ -v --cov=OpenRouterChats --cov-report=term-missing
 ```
 
 ## Созданные файлы:
