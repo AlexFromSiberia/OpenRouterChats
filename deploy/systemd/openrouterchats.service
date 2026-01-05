@@ -3,7 +3,7 @@ Description=OpenRouterChats Uvicorn ASGI daemon
 After=network.target
 
 [Service]
-Type=notify
+Type=simple
 User=www-data
 Group=www-data
 RuntimeDirectory=uvicorn
@@ -19,6 +19,7 @@ ExecStart=/var/www/openrouterchats/venv/bin/uvicorn \
           OpenRouterChats.asgi:application
 ExecReload=/bin/kill -s HUP $MAINPID
 KillMode=mixed
+TimeoutStartSec=60
 TimeoutStopSec=5
 PrivateTmp=true
 Restart=on-failure
