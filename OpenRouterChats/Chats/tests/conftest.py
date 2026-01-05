@@ -18,7 +18,17 @@ def django_db_setup():
     settings.DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': ':memory:',
+        'ATOMIC_REQUESTS': True,
     }
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """Очистка кэша перед каждым тестом"""
+    from django.core.cache import cache
+    cache.clear()
+    yield
+    cache.clear()
 
 
 @pytest.fixture
