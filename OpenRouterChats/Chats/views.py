@@ -55,17 +55,17 @@ def ratelimit_async(key, rate, method='ALL'):
         async def _wrapped(request, *args, **kwargs):
             # Используем sync_to_async для проверки rate limit
             ratelimited = await sync_to_async(is_ratelimited)(
-                request=request, 
+                request=request,
                 fn=view_func,  # Передаём функцию для правильной работы django-ratelimit
-                key=key, 
-                rate=rate, 
+                key=key,
+                rate=rate,
                 method=method,
                 increment=True
             )
-            
+
             if ratelimited:
                 return JsonResponse({'error': 'Rate limit exceeded'}, status=429)
-            
+
             return await view_func(request, *args, **kwargs)
         return _wrapped
     return decorator
@@ -94,7 +94,7 @@ def login_view(request):
             request.session['user_id'] = user.id
             request.session['user_login'] = user.login
             return redirect('home')
-        
+
         # Защита от брутфорса
         sleep(2)
         messages.error(request, 'Неверный логин или пароль')
@@ -279,7 +279,7 @@ async def send_message(request):
         return JsonResponse({'error': 'Выберите бесплатную модель (:free).'}, status=400)
 
 
-    teacher = await sync_to_async(Teachers.objects.filter(id=teacher_id).first)()
+    teacher = await sync_to_async(Teachers.objects.filter(id=teacher_id).first, thread_sensitive=True)()
     teacher_prompt = (teacher.prompt or '').strip() if teacher else ''
     # Для чата БЕЗ учителя ничего не добавляем (учительский промт не вставляем в начало)
     # Учительский промт будет использован как системный контекст, если он есть
