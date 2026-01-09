@@ -24,6 +24,8 @@ python -m pytest OpenRouterChats/Chats/tests/ -v --cov=OpenRouterChats --cov-rep
         pytest-django>=4.5.0
         pytest-asyncio>=0.21.0
         pytest-cov>=4.0.0
+        pytest-dotenv>=0.5.4
+        pytest-httpx>=0.36.0
         freezegun>=1.2.0
 
     pytest.ini - настройки pytest для Django с покрытием кода и маркерами тестов

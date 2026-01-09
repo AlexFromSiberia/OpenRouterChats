@@ -14,6 +14,7 @@ dependencies = [
     "pytest-cov>=7.0.0",
     "pytest-django>=4.11.1",
     "pytest-dotenv>=0.5.2",
+    "pytest-httpx>=0.36.0",
     "python-dotenv>=1.2.1",
     "uvicorn>=0.40.0",
     "whitenoise>=6.11.0",
