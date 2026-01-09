@@ -89,7 +89,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-        'ATOMIC_REQUESTS': not os.getenv('DATABASE_ATOMIC_REQUESTS', 'True').lower() == 'false',
+        'ATOMIC_REQUESTS': False,
     }
 }
 

@@ -228,7 +228,7 @@ async def get_all_models(request):
                 headers={'Authorization': f'Bearer {OPENROUTER_API_KEY}'}
             )
             response.raise_for_status()
-            res = await response.json()
+            res = response.json()
 
         model_ids = _extract_model_ids(res)
         free_models = sorted({m for m in model_ids if isinstance(m, str) and m.endswith(':free')})
@@ -305,7 +305,7 @@ async def send_message(request):
                 }
             )
             response.raise_for_status()
-            result = await response.json()
+            result = response.json()
             answer = result['choices'][0]['message']['content']
 
         chat_history.append({'role': 'assistant', 'content': answer})
