@@ -219,7 +219,7 @@ def _extract_model_ids(models_res):
 @_require_login_async
 @require_http_methods(['GET'])
 @ratelimit_async(key='ip', rate='5/m', method='GET')
-async def get_all_models():
+async def get_all_models(request):
     """Получение списка моделей open_router"""
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -228,7 +228,7 @@ async def get_all_models():
                 headers={'Authorization': f'Bearer {OPENROUTER_API_KEY}'}
             )
             response.raise_for_status()
-            res = response.json()
+            res = await response.json()
 
         model_ids = _extract_model_ids(res)
         free_models = sorted({m for m in model_ids if isinstance(m, str) and m.endswith(':free')})
