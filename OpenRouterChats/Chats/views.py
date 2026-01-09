@@ -253,7 +253,11 @@ def get_all_teachers(request):
 @ratelimit_async(key='user_or_ip', rate='30/m', method='POST')
 async def send_message(request):
     """Отправка сообщения"""
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format'}, status=400)
+    
     message = data.get('message', '').strip()
     chat_history = data.get('chat_history', [])
     teacher_id = data.get('teacher', '').strip()
@@ -301,7 +305,7 @@ async def send_message(request):
                 }
             )
             response.raise_for_status()
-            result = response.json()
+            result = await response.json()
             answer = result['choices'][0]['message']['content']
 
         chat_history.append({'role': 'assistant', 'content': answer})
